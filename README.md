@@ -32,6 +32,15 @@ This repository is being built incrementally. Product and architecture decisions
 | CI validation | Pending execution |
 | Deployment | Not configured |
 
+## Project documentation
+
+- [Product requirements](docs/PRODUCT_SPEC.md)
+- [Initial architecture](docs/ARCHITECTURE.md)
+- [Data model](docs/DATA_MODEL.md)
+- [Test plan](docs/TEST_PLAN.md)
+- [Release checklist](docs/RELEASE_CHECKLIST.md)
+- [Contribution guidelines](CONTRIBUTING.md)
+
 ## Development (planned)
 
 The initial implementation scaffold uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. Once the source files are available in the repository, install dependencies and run the package scripts defined in `package.json`.
