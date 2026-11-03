@@ -123,9 +123,17 @@ export async function searchRecords(query: string): Promise<{ applications: Appl
     applications: applications.filter((item) =>
       [item.company, item.role, item.nextStep, item.notes].some((value) => value.toLocaleLowerCase().includes(normalized))
     ),
-    evidence: evidence.filter((item) =>
-      [item.requirement, item.evidenceTitle, item.contribution, item.context].some((value) => value.toLocaleLowerCase().includes(normalized))
-    ),
+    evidence: evidence.filter((item) => {
+      const linkedApplication = applications.find((application) => application.id === item.applicationId);
+      return [
+        item.requirement,
+        item.evidenceTitle,
+        item.contribution,
+        item.context,
+        linkedApplication?.company ?? "",
+        linkedApplication?.role ?? "",
+      ].some((value) => value.toLocaleLowerCase().includes(normalized));
+    }),
   };
 }
 
