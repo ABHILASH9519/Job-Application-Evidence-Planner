@@ -184,3 +184,7 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
 
 .filter-label { display: grid; grid-template-columns: auto minmax(140px, 1fr); align-items: center; gap: 10px; color: #9299aa; font-size: 10px; margin: 0 0 13px; }
 .filter-label select { color: #e4e6ed; background: #10151f; border: 1px solid #30394b; border-radius: 6px; padding: 8px 10px; font-size: 10px; color-scheme: dark; }
+
+.follow-up-panel { margin-top: 16px; padding: 18px 20px; }
+.follow-up-panel .section-heading { margin-bottom: 5px; }
+.follow-up-empty { color: #858da0; font-size: 11px; margin: 13px 2px 3px; }

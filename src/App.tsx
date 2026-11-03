@@ -18,6 +18,11 @@ import { APPLICATION_STAGES, type ApplicationRecord, type ApplicationStage, type
 const emptyApplication: ApplicationInput = { company: "", role: "", jobUrl: "", appliedAt: "", stage: "saved", followUpAt: "", nextStep: "", notes: "" };
 const emptyEvidence: EvidenceInput = { applicationId: "", requirement: "", evidenceTitle: "", evidenceUrl: "", contribution: "", context: "", status: "planned" };
 
+function localDate(): string {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 function formatStage(stage: ApplicationStage): string {
   return stage === "saved" ? "Saved" : stage === "applied" ? "Applied" : stage === "assessment" ? "Assessment" : stage === "interview" ? "Interview" : stage === "offer" ? "Offer" : "Rejected";
 }
@@ -79,6 +84,7 @@ export default function App() {
   }, [query]);
 
   const visibleApplications = useMemo(() => stageFilter === "all" ? applications : applications.filter((item) => (item.stage ?? "saved") === stageFilter), [applications, stageFilter]);
+  const dueFollowUps = useMemo(() => allApplications.filter((item) => item.followUpAt && item.followUpAt <= localDate() && item.stage !== "rejected").sort((a, b) => a.followUpAt.localeCompare(b.followUpAt)), [allApplications]);
   const completedCount = useMemo(() => evidence.filter((item) => item.status === "completed").length, [evidence]);
   const inProgressCount = useMemo(() => evidence.filter((item) => item.status === "in_progress").length, [evidence]);
 
@@ -249,6 +255,7 @@ export default function App() {
                 {applications.slice(0, 3).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">▤</div><div className="activity-copy"><strong>{item.role}</strong><span>{item.company} · Application</span></div><span className="plain-tag">Tracked</span></div>)}
               </div>}
             </div>
+            <section className="panel-card follow-up-panel"><div className="section-heading"><div><h2>Follow-up reminders</h2><p>Dates that need your attention.</p></div><span className="count">{dueFollowUps.length}</span></div>{dueFollowUps.length === 0 ? <p className="follow-up-empty">No follow-ups due today. Add a follow-up date to any tracked role.</p> : <div className="activity-list">{dueFollowUps.slice(0, 5).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">◷</div><div className="activity-copy"><strong>{item.company} · {item.role}</strong><span>{item.nextStep || "Follow up on this application"} · {item.followUpAt < localDate() ? "Overdue" : "Due today"}</span></div><button className="text-button" onClick={() => editApplication(item)}>Open →</button></div>)}</div>}</section>
             <div className="privacy-banner"><span>◈</span><div><strong>Your information stays yours.</strong><p>Applications and evidence are stored in this browser using IndexedDB. Nothing is uploaded to a server.</p></div></div>
           </>}
 
