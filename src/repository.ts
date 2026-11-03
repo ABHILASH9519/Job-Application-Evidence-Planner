@@ -18,6 +18,15 @@ function requiredText(value: string, field: string): string {
   return normalized;
 }
 
+function optionalDate(value: string, field: string): string {
+  const normalized = value.trim();
+  if (!normalized) return "";
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(normalized)) throw new Error(`${field} must be a valid date.`);
+  const parsed = new Date(`${normalized}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== normalized) throw new Error(`${field} must be a valid date.`);
+  return normalized;
+}
+
 function optionalUrl(value: string, field: string): string {
   const normalized = value.trim();
   if (!normalized) return "";
@@ -54,9 +63,9 @@ export async function saveApplication(input: ApplicationInput, id?: string): Pro
     company: requiredText(input.company, "Company"),
     role: requiredText(input.role, "Role"),
     jobUrl: optionalUrl(input.jobUrl ?? "", "Job URL"),
-    appliedAt: input.appliedAt ?? "",
+    appliedAt: optionalDate(input.appliedAt ?? "", "Application date"),
     stage: stage as ApplicationStage,
-    followUpAt: input.followUpAt ?? existing?.followUpAt ?? "",
+    followUpAt: optionalDate(input.followUpAt ?? existing?.followUpAt ?? "", "Follow-up date"),
     nextStep: input.nextStep?.trim() ?? "",
     notes: input.notes?.trim() ?? "",
     createdAt: existing?.createdAt ?? now,
@@ -153,6 +162,14 @@ function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
+function isSafeOptionalDate(value: unknown): boolean {
+  if (!isString(value)) return false;
+  if (!value.trim()) return true;
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 function isSafeOptionalUrl(value: unknown): boolean {
   if (!isString(value)) return false;
   if (!value.trim()) return true;
@@ -169,7 +186,8 @@ function isApplicationRecord(value: unknown): value is ApplicationRecord {
   return ["id", "company", "role", "jobUrl", "appliedAt", "nextStep", "notes", "createdAt", "updatedAt"]
     .every((key) => isString(value[key])) &&
     (value.stage === undefined || APPLICATION_STAGES.includes(value.stage as ApplicationStage)) &&
-    (value.followUpAt === undefined || isString(value.followUpAt)) &&
+    (value.followUpAt === undefined || isSafeOptionalDate(value.followUpAt)) &&
+    isSafeOptionalDate(value.appliedAt) &&
     isSafeOptionalUrl(value.jobUrl) &&
     Boolean(value.id) && Boolean(value.company) && Boolean(value.role);
 }

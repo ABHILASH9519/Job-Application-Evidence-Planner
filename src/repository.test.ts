@@ -38,6 +38,7 @@ describe("application records", () => {
     const id = await saveApplication({ company: "Northstar", role: "Engineer", stage: "interview", followUpAt: "2026-11-12" });
     expect(await db.applications.get(id)).toMatchObject({ stage: "interview", followUpAt: "2026-11-12" });
     await expect(saveApplication({ company: "Northstar", role: "Engineer", stage: "invalid" as never })).rejects.toThrow("supported application stage");
+    await expect(saveApplication({ company: "Northstar", role: "Engineer", followUpAt: "2026-02-30" })).rejects.toThrow("Follow-up date must be a valid date");
   });
 
 
