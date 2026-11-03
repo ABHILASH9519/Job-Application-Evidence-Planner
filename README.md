@@ -19,9 +19,9 @@ Application and evidence records are stored in the current browser's IndexedDB. 
 
 ## Project status
 
-The Day 1 application is implemented and deployed at https://job-application-evidence-planner.vercel.app/. The latest verified production browser walkthrough passed on the deployed Vercel build for application/evidence CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, backup merge, privacy request checks, deletion confirmation, and a 390px viewport.
+The Day 1 application is implemented and deployed at https://job-application-evidence-planner.vercel.app/. The production browser walkthrough passed on the latest Vercel build for application/evidence CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, backup merge, deletion confirmation, privacy request checks, mobile overflow, and the evidence-search/application-selector regression.
 
-GitHub Actions run `41691917432` passed on commit `a5e646be07b3d64828ef58f88acf5ca2206d32a1`: 12 tests across 2 files, TypeScript checks, Vite production build, dependency installation, and `npm audit --audit-level=moderate` with zero known vulnerabilities. A separate IndexedDB v1-to-v2 migration test has since been added and is awaiting its CI result.
+GitHub Actions run `41693771287` passed on commit `949359c358d5106b8d239ac36f2088eb184f6c43`: 14 tests across 3 files, TypeScript checks, Vite production build, dependency installation, and `npm audit --audit-level=moderate` with zero known vulnerabilities.
 
 | Area | Verified status |
 | --- | --- |
@@ -30,7 +30,7 @@ GitHub Actions run `41691917432` passed on commit `a5e646be07b3d64828ef58f88acf5
 | Evidence readiness | Passed in production browser walkthrough |
 | Backup export/import/merge | Passed in repository tests and production browser walkthrough |
 | Browser-local persistence | Passed in production browser walkthrough |
-| Production build and dependency audit | Passed in GitHub Actions run `41691917432` |
+| Production build and dependency audit | Passed in GitHub Actions run `41693771287` |
 | Production deployment | Vercel deployment READY; public URL returned HTTP 200 |
 
 There is no committed npm lockfile. Direct dependencies are pinned in `package.json`, but transitive dependency resolution is not fully reproducible.

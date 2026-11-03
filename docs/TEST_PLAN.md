@@ -4,25 +4,25 @@ This document records the checks actually performed for the Day 1 release.
 
 ## Automated verification
 
-Latest successful pre-migration-test run: commit `a5e646be07b3d64828ef58f88acf5ca2206d32a1` (GitHub Actions run `41691917432`, success). The v1-to-v2 migration test has been added after that run; its result is pending.
+Latest verified commit: `949359c358d5106b8d239ac36f2088eb184f6c43` (GitHub Actions run `41693771287`, success).
 
 GitHub Actions completed successfully with:
 - `npm install` — completed (dependencies are exact-pinned directly in `package.json`; there is no committed lockfile).
 - `npm audit --audit-level=moderate` — zero known vulnerabilities.
-- `npm test` — 12 tests passed across 2 test files (10 repository/data-layer tests and 2 UI component smoke tests) on run `41691917432`. A new schema migration test is now included in source and will be counted after CI.
+- `npm test` — 14 tests passed across 3 test files (10 repository/data-layer tests, 3 UI component tests, and 1 IndexedDB migration test) on run `41693771287`.
 - `npm run build` — TypeScript project check and Vite production build passed.
 
-The existing repository tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, and dangling application references. A dedicated IndexedDB v1-to-v2 schema upgrade test has now been added; CI verification is pending.
+The repository tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, dangling application references, and IndexedDB v1-to-v2 migration with preservation of linked evidence. UI tests cover initial rendering, opening the application form, and keeping application choices available while evidence search filters the lists.
 
 ## Production browser walkthrough
 
-Performed against https://job-application-evidence-planner.vercel.app/ using Playwright 1.64.1 and Chromium 156.
+Performed against the latest READY Vercel production deployment using Playwright 1.64.1 and Chromium 156.
 
 **PASS** One end-to-end workflow passed, covering:
 - Load the deployed application and render the empty workspace.
 - Create and edit an application; set its pipeline stage and an overdue follow-up date.
 - Create and edit linked evidence; mark it completed.
-- Filter applications by stage and verify evidence readiness.
+- Filter applications by stage and verify evidence readiness.\n- Search for evidence with a term that does not match the employer and verify the related-application selector still lists all applications.
 - Verify the overdue reminder appears on the overview.
 - Export the report and parse the downloaded JSON, including stage and evidence status.
 - Reload and verify IndexedDB persistence.

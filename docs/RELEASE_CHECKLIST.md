@@ -14,22 +14,22 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [x] Browser-local persistence survives reloads.
 
 ## Quality
-- [ ] Automated data-layer and schema migration tests pass in a clean GitHub Actions environment (13 tests expected; latest CI result pending).
-- [x] Production build succeeds (`tsc -b` and `vite build`, verified in GitHub Actions run `41691917432`; rerun after migration-test addition pending).
-- [x] UI component smoke tests pass in jsdom (2 tests, GitHub Actions run `41691917432`).
-- [x] Production browser walkthrough passed on desktop and a 390px mobile viewport (Playwright, Chromium 156).
+- [x] Automated data-layer and schema migration tests pass in a clean GitHub Actions environment (14 tests across 3 files, GitHub Actions run `41693771287`).
+- [x] Production build succeeds (`tsc -b` and `vite build`, GitHub Actions run `41693771287`).
+- [x] UI component and search-filter regression tests pass in jsdom (3 tests, GitHub Actions run `41693771287`).
+- [x] Production browser walkthrough passed on latest Vercel build, including the evidence-search regression, and a 390px mobile viewport (Playwright, Chromium 156).
 - [x] Empty, invalid, and destructive-action states are covered by UI/repository checks and confirmed destructive-action dialogs.
 - [x] Source review confirms the initial app stores user records in IndexedDB and has no application API or analytics integration.
-- [x] `npm audit --audit-level=moderate` reports zero known vulnerabilities on GitHub Actions run `41691917432`.
+- [x] `npm audit --audit-level=moderate` reports zero known vulnerabilities on GitHub Actions run `41693771287`.
 
 ## Repository and delivery
 - [x] Application source is committed. No npm lockfile is included; transitive dependency versions may change on future installs.
-- [x] CI uses `npm install`, a blocking `npm audit --audit-level=moderate`, tests, and production build; run `41691917432` passed before the added migration test.
+- [x] CI uses `npm install`, a blocking `npm audit --audit-level=moderate`, tests, and production build; run `41693771287` passed.
 - [x] README setup instructions match the actual scripts.
 - [x] Known limitations are documented (browser-local data, no cross-device sync or push notifications, manual backups).
 - [x] Production deployment is READY at https://job-application-evidence-planner.vercel.app/ (HTTP 200).
 
-- [ ] Add and verify a committed test for upgrading existing IndexedDB v1 records to schema v2; test added, CI result pending.\n\n## Completion rule
+- [x] A committed test verifies the IndexedDB v1-to-v2 upgrade defaults and preservation of linked evidence.\n\n## Completion rule
 
 Day 1 is complete only when all required implementation and quality checks are verified. Documentation-only progress does not satisfy this release gate.
 
