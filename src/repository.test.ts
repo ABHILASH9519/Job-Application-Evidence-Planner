@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "./db";
 import {
   buildEvidenceReport,
+  importEvidenceReport,
   deleteApplication,
   deleteEvidence,
   listApplications,
@@ -78,6 +79,65 @@ describe("evidence records", () => {
     const evidenceId = await saveEvidence({ applicationId, requirement: "Testing", evidenceTitle: "QA project" });
     await deleteApplication(applicationId);
     expect(await db.evidence.get(evidenceId)).toMatchObject({ applicationId: undefined });
+  });
+
+  it("merges a valid JSON report without deleting unrelated local records", async () => {
+    const localId = await saveApplication({ company: "Local Company", role: "Engineer" });
+    const importedApplication = {
+      id: "imported-application",
+      company: "Imported Company",
+      role: "Cloud Engineer",
+      jobUrl: "",
+      appliedAt: "2026-11-03",
+      nextStep: "",
+      notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    const importedEvidence = {
+      id: "imported-evidence",
+      applicationId: importedApplication.id,
+      requirement: "Cloud infrastructure",
+      evidenceTitle: "Terraform project",
+      evidenceUrl: "",
+      contribution: "Built reusable modules",
+      context: "",
+      status: "completed" as const,
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+
+    const counts = await importEvidenceReport({
+      exportedAt: "2026-11-03T00:00:00.000Z",
+      applications: [importedApplication],
+      evidence: [importedEvidence],
+    });
+
+    expect(counts).toEqual({ applications: 1, evidence: 1 });
+    expect(await db.applications.get(localId)).toBeDefined();
+    expect(await db.applications.get(importedApplication.id)).toBeDefined();
+    expect(await db.evidence.get(importedEvidence.id)).toMatchObject({ status: "completed" });
+  });
+
+  it("rejects malformed reports and dangling application references", async () => {
+    await expect(importEvidenceReport({ applications: "not-an-array", evidence: [] }))
+      .rejects.toThrow("not a valid Evidence Planner JSON report");
+
+    await expect(importEvidenceReport({
+      applications: [],
+      evidence: [{
+        id: "orphan",
+        applicationId: "missing-application",
+        requirement: "Testing",
+        evidenceTitle: "Test suite",
+        evidenceUrl: "",
+        contribution: "",
+        context: "",
+        status: "planned",
+        createdAt: "2026-11-03T00:00:00.000Z",
+        updatedAt: "2026-11-03T00:00:00.000Z",
+      }],
+    })).rejects.toThrow("linked to an application that is not available");
   });
 
   it("searches application and evidence text", async () => {
