@@ -29,7 +29,9 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [x] Known limitations are documented (browser-local data, no cross-device sync or push notifications, manual backups).
 - [x] Production deployment is READY at https://job-application-evidence-planner.vercel.app/ (HTTP 200).
 
-- [x] A committed test verifies the IndexedDB v1-to-v2 upgrade defaults and preservation of linked evidence.\n\n## Completion rule
+- [x] A committed test verifies the IndexedDB v1-to-v2 upgrade defaults and preservation of linked evidence.
+
+## Completion rule
 
 Day 1 is complete only when all required implementation and quality checks are verified. Documentation-only progress does not satisfy this release gate.
 

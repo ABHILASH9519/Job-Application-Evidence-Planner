@@ -22,7 +22,8 @@ Performed against the latest READY Vercel production deployment using Playwright
 - Load the deployed application and render the empty workspace.
 - Create and edit an application; set its pipeline stage and an overdue follow-up date.
 - Create and edit linked evidence; mark it completed.
-- Filter applications by stage and verify evidence readiness.\n- Search for evidence with a term that does not match the employer and verify the related-application selector still lists all applications.
+- Filter applications by stage and verify evidence readiness.
+- Search for evidence with a term that does not match the employer and verify the related-application selector still lists all applications.
 - Verify the overdue reminder appears on the overview.
 - Export the report and parse the downloaded JSON, including stage and evidence status.
 - Reload and verify IndexedDB persistence.
