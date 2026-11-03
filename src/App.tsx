@@ -30,6 +30,7 @@ export default function App() {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [allApplications, setAllApplications] = useState<ApplicationRecord[]>([]);
   const [evidence, setEvidence] = useState<EvidenceRecord[]>([]);
+  const [allEvidence, setAllEvidence] = useState<EvidenceRecord[]>([]);
   const [query, setQuery] = useState("");
   const [activeView, setActiveView] = useState<"overview" | "applications" | "evidence">("overview");
   const [applicationForm, setApplicationForm] = useState<ApplicationInput>(emptyApplication);
@@ -43,10 +44,11 @@ export default function App() {
 
   async function refresh(search = query) {
     const requestId = ++refreshSequence.current;
-    const [result, allApps] = await Promise.all([searchRecords(search), listApplications()]);
+    const [result, allApps, everyEvidence] = await Promise.all([searchRecords(search), listApplications(), listEvidence()]);
     if (requestId !== refreshSequence.current) return;
     setApplications(result.applications);
     setAllApplications(allApps);
+    setAllEvidence(everyEvidence);
     setEvidence(result.evidence);
   }
 
@@ -57,6 +59,7 @@ export default function App() {
         if (mounted) {
           setApplications(apps);
           setAllApplications(apps);
+          setAllEvidence(items);
           setEvidence(items);
         }
       })
@@ -263,7 +266,7 @@ export default function App() {
             </section>
             <section className="panel-card list-card"><div className="card-heading"><div><h2>Tracked roles <span className="count">{applications.length}</span></h2><p>All your opportunities in one view.</p></div></div>
               <SearchBox value={query} onChange={setQuery} />
-              {applications.length === 0 ? <div className="empty-state compact"><h3>No applications yet</h3><p>Your saved roles will appear here.</p></div> : <div className="record-list">{applications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div><div className="application-meta"><span className={`stage-pill stage-${item.stage ?? "saved"}`}>{formatStage(item.stage ?? "saved")}</span>{item.followUpAt && <span className={item.followUpAt < new Date().toISOString().slice(0, 10) ? "follow-up overdue" : "follow-up"}>{item.followUpAt < new Date().toISOString().slice(0, 10) ? "Overdue · " : "Follow up · "}{item.followUpAt}</span>}</div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
+              {applications.length === 0 ? <div className="empty-state compact"><h3>No applications yet</h3><p>Your saved roles will appear here.</p></div> : <div className="record-list">{applications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div><div className="application-meta"><span className={`stage-pill stage-${item.stage ?? "saved"}`}>{formatStage(item.stage ?? "saved")}</span>{item.followUpAt && <span className={item.followUpAt < new Date().toISOString().slice(0, 10) ? "follow-up overdue" : "follow-up"}>{item.followUpAt < new Date().toISOString().slice(0, 10) ? "Overdue · " : "Follow up · "}{item.followUpAt}</span>}</div><div className="coverage-row"><span>Evidence readiness</span><strong>{allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length}/{allEvidence.filter((e) => e.applicationId === item.id).length} ready</strong><div className="coverage-track"><i style={{ width: `${allEvidence.filter((e) => e.applicationId === item.id).length ? (allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length / allEvidence.filter((e) => e.applicationId === item.id).length) * 100 : 0}%` }} /></div></div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
             </section>
           </div>}
 
