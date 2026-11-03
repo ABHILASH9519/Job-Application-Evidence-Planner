@@ -24,6 +24,8 @@ A student, graduate, or early-career applicant preparing applications for multip
 - Role title
 - Job posting URL
 - Application date
+- Pipeline stage: saved, applied, assessment, interview, offer, or rejected
+- Optional follow-up date
 - Next action or follow-up step
 - Notes
 

@@ -2,10 +2,6 @@
 
 A privacy-first workspace for organizing job applications and mapping role requirements to concrete evidence from projects, internships, coursework, and professional experience.
 
-## Why this exists
-
-A strong application is easier to prepare when each role requirement is connected to specific, verifiable evidence. This project is intended to help applicants track opportunities, identify evidence gaps, and prepare consistent application material without losing the context behind each claim.
-
 ## Current capabilities
 
 - Track applications by company, role, job URL, application date, pipeline stage, follow-up date, next step, and notes.
@@ -15,33 +11,36 @@ A strong application is easier to prepare when each role requirement is connecte
 - Record the applicant's contribution and relevant limitations or context.
 - Track evidence progress as planned, in progress, or completed.
 - Search and review application and evidence records.
-- Export a structured application evidence report as JSON.
-- Import a JSON backup by merging records; matching IDs are updated and unrelated local records are preserved.
+- Export a structured JSON report and merge backups without deleting unrelated local records.
 
 ## Privacy and data handling
 
-The initial product direction is local-first: application and evidence records should remain in the user's browser unless an explicitly documented export or future sync feature is used. Do not add analytics, external AI processing, or third-party data transfer without clear user consent and documentation.
+Application and evidence records are stored in the current browser's IndexedDB. The application does not require an account or application backend. It does not automatically sync records to another browser or device. Export is an explicit user action. Do not add analytics, external AI processing, or third-party data transfer without clear user consent and documentation.
 
 ## Project status
 
-The Day 1 application is implemented and deployed. The production browser walkthrough passed against the live Vercel site, including CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, merge behavior, privacy checks, and a 390px mobile viewport. GitHub Actions passed 12 automated tests, TypeScript checks, the Vite production build, dependency installation, and a blocking npm audit with zero known vulnerabilities on the commit `ba7e1f1`. The workflow uses `npm install`; a complete npm lockfile is not included, so transitive dependency resolution is not fully reproducible.
+The Day 1 application is implemented and deployed at https://job-application-evidence-planner.vercel.app/. The latest verified production browser walkthrough passed on the deployed Vercel build for application/evidence CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, backup merge, privacy request checks, deletion confirmation, and a 390px viewport.
 
-| Area | Status |
+GitHub Actions run `41691917432` passed on commit `a5e646be07b3d64828ef58f88acf5ca2206d32a1`: 12 tests across 2 files, TypeScript checks, Vite production build, dependency installation, and `npm audit --audit-level=moderate` with zero known vulnerabilities. A separate IndexedDB v1-to-v2 migration test has since been added and is awaiting its CI result.
+
+| Area | Verified status |
 | --- | --- |
-| Product scope | Documented |
-| Initial architecture | Documented |
-| Application implementation | CRUD, search, pipeline stages, follow-ups, evidence readiness, export/import, and IndexedDB persistence verified in production browser walkthrough |
-| Automated tests | 12 tests passed in GitHub Actions on commit `54fffc0` (10 data-layer, 2 UI smoke) |
-| Production build | `tsc -b` and Vite 8 production build passed in GitHub Actions on commit `54fffc0` |
-| CI validation | Dependency installation, tests, production build, and `npm audit --audit-level=moderate` passed; zero known vulnerabilities; 12 tests passed on commit `ba7e1f1` |
-| Deployment | Vercel production deployment READY; public URL returns HTTP 200 |
+| Application/evidence CRUD | Passed in repository tests and production browser walkthrough |
+| Pipeline stages and follow-up dates | Passed in repository tests and production browser walkthrough |
+| Evidence readiness | Passed in production browser walkthrough |
+| Backup export/import/merge | Passed in repository tests and production browser walkthrough |
+| Browser-local persistence | Passed in production browser walkthrough |
+| Production build and dependency audit | Passed in GitHub Actions run `41691917432` |
+| Production deployment | Vercel deployment READY; public URL returned HTTP 200 |
+
+There is no committed npm lockfile. Direct dependencies are pinned in `package.json`, but transitive dependency resolution is not fully reproducible.
 
 ## Project documentation
 
 - [Product requirements](docs/PRODUCT_SPEC.md)
-- [Initial architecture](docs/ARCHITECTURE.md)
+- [Implemented architecture](docs/ARCHITECTURE.md)
 - [Data model](docs/DATA_MODEL.md)
-- [Test plan](docs/TEST_PLAN.md)
+- [Test plan and verification report](docs/TEST_PLAN.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Contribution guidelines](CONTRIBUTING.md)
 
@@ -54,14 +53,14 @@ npm install
 npm run dev
 ```
 
-Run the automated test suite and production build:
+Run automated tests and the production build:
 
 ```bash
 npm test
 npm run build
 ```
 
-The application uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. Application records stay in the current browser's IndexedDB; they are not synced between browsers or devices and there is no account, backend, email reminder, or push notification service. Follow-up reminders are shown when the workspace is opened. Export a JSON backup periodically; importing a backup merges records by ID, updates matching IDs, and preserves unrelated local records. Clearing browser site data can still remove locally stored records.
+Follow-up reminders are displayed when the workspace is opened; there are no email reminders, push notifications, or background notifications. Browser site-data clearing can remove locally stored records, so export JSON backups periodically.
 
 ## Contributing
 

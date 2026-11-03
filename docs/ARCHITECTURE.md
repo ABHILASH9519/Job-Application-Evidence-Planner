@@ -1,59 +1,67 @@
-# Initial Architecture
+# Implemented Architecture
 
-## Architecture direction
+## Runtime architecture
 
-The first release is designed as a browser-based, local-first application.
+The initial release is a browser-based, local-first React application.
 
 ```text
 User
  |
  v
-React UI
+React + TypeScript UI
  |
  v
-Application data layer
+Application repository / validation layer
  |
  v
-IndexedDB (via Dexie)
+Dexie data access
+ |
+ v
+Browser IndexedDB (schema version 2)
  |
  +----> JSON export initiated by the user
+ +<---- JSON backup import with validation and merge semantics
 ```
 
-## Proposed technology
+## Implemented technology
 
-- React for the user interface.
-- TypeScript for application types and safer data handling.
-- Vite for local development and production builds.
-- Dexie over IndexedDB for browser-local persistence.
-- Vitest and fake-indexeddb for automated data-layer tests.
-- GitHub Actions for repeatable build and test checks.
-
-These are the intended initial technologies; their presence in this document does not imply that builds or tests have already passed.
+- React 18 for the user interface.
+- TypeScript for application and record types.
+- Vite 8 for development and production builds.
+- Dexie 4 over IndexedDB for browser-local persistence.
+- Vitest, jsdom, and fake-indexeddb for automated tests.
+- GitHub Actions for dependency installation, dependency audit, tests, and production build.
+- Vercel for static frontend deployment.
 
 ## Data boundaries
 
-- Application records and evidence records are stored in the browser's IndexedDB.
-- No server-side database is required for the initial local-first release.
+- Application and evidence records are stored in the browser's IndexedDB.
+- No application API or server-side database is required.
 - JSON export is an explicit user action.
-- No analytics, external AI API, or background synchronization is part of the initial scope.
-- Future remote storage would require a separate design covering authentication, authorization, encryption, retention, deletion, and user consent.
+- Import validates record shapes, safe HTTP(S) URLs, unique IDs, allowed stage/status values, and linked application references before merging.
+- No analytics, external AI API, or background synchronization is part of this release.
+- User data does not sync between browsers or devices.
 
-## Data integrity principles
+## Data integrity
 
-- Use stable record identifiers.
-- Keep evidence status values constrained to the documented set.
-- Preserve applicant-authored contribution and limitation notes.
-- Do not infer or invent achievements from a job description.
-- Exports should include enough context to interpret each evidence item independently.
+- Records use stable identifiers.
+- Application stages and evidence statuses are constrained to documented sets.
+- Applicant-authored contribution and context notes are preserved.
+- Deleting an application preserves its evidence records and removes their application link.
+- Import updates matching IDs and preserves unrelated local records.
+- Schema version 2 backfills older application records with the default `saved` stage and an empty follow-up date.
 
-## Quality strategy
+## Quality and delivery
 
-1. Unit-test data-layer operations.
-2. Test persistence with an IndexedDB-compatible test environment.
-3. Test export serialization, including status and context fields.
-4. Run a production build in CI.
-5. Perform a manual browser smoke test before declaring the release usable.
+- Repository tests cover CRUD, validation, search, export, backup merge, legacy backup import, and data integrity.
+- UI smoke tests cover the initial workspace and opening the application form.
+- A production browser walkthrough exercised end-to-end workflows, reload persistence, backup merge, delete confirmations, privacy requests, and a mobile viewport.
+- GitHub Actions checks dependency installation, vulnerability audit, tests, and the production build.
 
 ## Known limitations
 
-This is an initial architecture record, not proof of a completed implementation. The application source, dependency installation, test execution, build verification, and browser testing must be completed and recorded separately.
+- No account, authentication, cloud sync, or multi-device data sharing.
+- No recruiter email integration, push notifications, or background reminders.
+- No committed npm lockfile; transitive dependency versions may vary between installs.
+- Browser site-data clearing can remove locally stored records.
+- Manual browser walkthrough coverage is limited to Chromium desktop and a 390px mobile viewport; other browsers and real devices have not been exhaustively tested.

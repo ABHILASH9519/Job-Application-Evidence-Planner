@@ -4,15 +4,15 @@ This document records the checks actually performed for the Day 1 release.
 
 ## Automated verification
 
-Latest verified source commit: `ba7e1f1b537ebb254839f9462828cc72c40747a4` (GitHub Actions run `41691741019`, success)
+Latest successful pre-migration-test run: commit `a5e646be07b3d64828ef58f88acf5ca2206d32a1` (GitHub Actions run `41691917432`, success). The v1-to-v2 migration test has been added after that run; its result is pending.
 
 GitHub Actions completed successfully with:
 - `npm install` — completed (dependencies are exact-pinned directly in `package.json`; there is no committed lockfile).
 - `npm audit --audit-level=moderate` — zero known vulnerabilities.
-- `npm test` — 12 tests passed across 2 test files (10 repository/data-layer tests and 2 UI component smoke tests).
+- `npm test` — 12 tests passed across 2 test files (10 repository/data-layer tests and 2 UI component smoke tests) on run `41691917432`. A new schema migration test is now included in source and will be counted after CI.
 - `npm run build` — TypeScript project check and Vite production build passed.
 
-The repository tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, and dangling application references.
+The existing repository tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, and dangling application references. A dedicated IndexedDB v1-to-v2 schema upgrade test has now been added; CI verification is pending.
 
 ## Production browser walkthrough
 
