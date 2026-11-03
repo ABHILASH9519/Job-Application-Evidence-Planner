@@ -149,10 +149,22 @@ function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
+function isSafeOptionalUrl(value: unknown): boolean {
+  if (!isString(value)) return false;
+  if (!value.trim()) return true;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function isApplicationRecord(value: unknown): value is ApplicationRecord {
   if (!isObject(value)) return false;
   return ["id", "company", "role", "jobUrl", "appliedAt", "nextStep", "notes", "createdAt", "updatedAt"]
     .every((key) => isString(value[key])) &&
+    isSafeOptionalUrl(value.jobUrl) &&
     Boolean(value.id) && Boolean(value.company) && Boolean(value.role);
 }
 
@@ -160,6 +172,7 @@ function isEvidenceRecord(value: unknown): value is EvidenceRecord {
   if (!isObject(value)) return false;
   const strings = ["id", "requirement", "evidenceTitle", "evidenceUrl", "contribution", "context", "createdAt", "updatedAt"];
   return strings.every((key) => isString(value[key])) &&
+    isSafeOptionalUrl(value.evidenceUrl) &&
     (value.applicationId === undefined || isString(value.applicationId)) &&
     (value.status === "planned" || value.status === "in_progress" || value.status === "completed") &&
     Boolean(value.id) && Boolean(value.requirement) && Boolean(value.evidenceTitle);
@@ -181,6 +194,11 @@ export async function importEvidenceReport(raw: unknown): Promise<{ applications
   }
 
   const importedApplicationIds = new Set(applications.map((item) => item.id));
+  const importedEvidenceIds = new Set(evidence.map((item) => item.id));
+  if (importedApplicationIds.size !== applications.length || importedEvidenceIds.size !== evidence.length) {
+    throw new Error("The report contains duplicate record IDs.");
+  }
+
   await db.transaction("rw", db.applications, db.evidence, async () => {
     const existingApplications = await db.applications.toArray();
     const availableApplicationIds = new Set([
