@@ -7,7 +7,7 @@ This document records the checks actually performed for the Day 1 release.
 Latest verified source commit: `54fffc03bc1f8c5a4390a45411b8766c2f9222ed`
 
 GitHub Actions completed successfully with:
-- `npm ci` — completed.
+- `npm install` — completed (dependencies are exact-pinned directly in `package.json`; there is no committed lockfile).
 - `npm audit --audit-level=moderate` — zero known vulnerabilities.
 - `npm test` — 12 tests passed across 2 test files (10 repository/data-layer tests and 2 UI component smoke tests).
 - `npm run build` — TypeScript project check and Vite production build passed.

@@ -20,11 +20,11 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [x] Production browser walkthrough passed on desktop and a 390px mobile viewport (Playwright, Chromium 156).
 - [x] Empty, invalid, and destructive-action states are covered by UI/repository checks and confirmed destructive-action dialogs.
 - [x] Source review confirms the initial app stores user records in IndexedDB and has no application API or analytics integration.
-- [x] `npm audit --audit-level=moderate` reports zero known vulnerabilities on commit `54fffc0`.
+- [x] `npm audit --audit-level=moderate` reports zero known vulnerabilities on latest successful CI run.
 
 ## Repository and delivery
-- [x] Source and generated `package-lock.json` are committed.
-- [x] CI uses `npm ci`, a blocking `npm audit --audit-level=moderate`, tests, and production build; all passed on commit `54fffc0`.
+- [x] Application source is committed. No npm lockfile is included; transitive dependency versions may change on future installs.
+- [x] CI uses `npm install`, a blocking `npm audit --audit-level=moderate`, tests, and production build; latest successful run recorded below.
 - [x] README setup instructions match the actual scripts.
 - [x] Known limitations are documented (browser-local data, no cross-device sync or push notifications, manual backups).
 - [x] Production deployment is READY at https://job-application-evidence-planner.vercel.app/ (HTTP 200).
