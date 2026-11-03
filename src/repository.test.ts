@@ -123,6 +123,34 @@ describe("evidence records", () => {
     await expect(importEvidenceReport({ applications: "not-an-array", evidence: [] }))
       .rejects.toThrow("not a valid Evidence Planner JSON report");
 
+    const unsafeApplication = {
+      id: "unsafe",
+      company: "Example",
+      role: "Engineer",
+      jobUrl: "javascript:alert(1)",
+      appliedAt: "",
+      nextStep: "",
+      notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    await expect(importEvidenceReport({ applications: [unsafeApplication], evidence: [] }))
+      .rejects.toThrow("invalid application or evidence record");
+
+    const duplicate = {
+      id: "duplicate",
+      company: "Example",
+      role: "Engineer",
+      jobUrl: "",
+      appliedAt: "",
+      nextStep: "",
+      notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    await expect(importEvidenceReport({ applications: [duplicate, duplicate], evidence: [] }))
+      .rejects.toThrow("duplicate record IDs");
+
     await expect(importEvidenceReport({
       applications: [],
       evidence: [{
