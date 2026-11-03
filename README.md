@@ -41,9 +41,23 @@ This repository is being built incrementally. Product and architecture decisions
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Contribution guidelines](CONTRIBUTING.md)
 
-## Development (planned)
+## Development
 
-The initial implementation scaffold uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. Once the source files are available in the repository, install dependencies and run the package scripts defined in `package.json`.
+Requirements: Node.js 20 or newer and npm.
+
+```bash
+npm install
+npm run dev
+```
+
+Run the automated test suite and production build:
+
+```bash
+npm test
+npm run build
+```
+
+The application uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. The initial release stores data in the current browser; clearing browser site data can remove locally stored records, so export a JSON backup when needed.
 
 ## Contributing
 
