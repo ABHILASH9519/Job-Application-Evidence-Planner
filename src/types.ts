@@ -1,4 +1,5 @@
 export type ApplicationStage = "saved" | "applied" | "assessment" | "interview" | "offer" | "rejected";
+export type ApplicationStage = "saved" | "applied" | "assessment" | "interview" | "offer" | "rejected";
 export type EvidenceStatus = "planned" | "in_progress" | "completed";
 
 export interface ApplicationRecord {
@@ -7,6 +8,8 @@ export interface ApplicationRecord {
   role: string;
   jobUrl: string;
   appliedAt: string;
+  stage: ApplicationStage;
+  followUpAt: string;
   stage: ApplicationStage;
   nextStep: string;
   notes: string;
@@ -41,6 +44,8 @@ export const APPLICATION_STAGES: ApplicationStage[] = [
   "offer",
   "rejected",
 ];
+
+export const APPLICATION_STAGES: ApplicationStage[] = ["saved", "applied", "assessment", "interview", "offer", "rejected"];
 
 export const EVIDENCE_STATUSES: EvidenceStatus[] = [
   "planned",

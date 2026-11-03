@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { EVIDENCE_STATUSES, type ApplicationRecord, type EvidenceRecord, type EvidenceReport, type EvidenceStatus } from "./types";
+import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceReport, type EvidenceStatus } from "./types";
 
 function createId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -34,7 +34,7 @@ function optionalUrl(value: string, field: string): string {
 }
 
 export type ApplicationInput = Pick<ApplicationRecord, "company" | "role"> &
-  Partial<Pick<ApplicationRecord, "jobUrl" | "appliedAt" | "nextStep" | "notes">>;
+  Partial<Pick<ApplicationRecord, "jobUrl" | "appliedAt" | "stage" | "followUpAt" | "nextStep" | "notes">>;
 
 export type EvidenceInput = Pick<EvidenceRecord, "requirement" | "evidenceTitle"> &
   Partial<Pick<EvidenceRecord, "applicationId" | "evidenceUrl" | "contribution" | "context" | "status">>;
@@ -47,12 +47,16 @@ export async function saveApplication(input: ApplicationInput, id?: string): Pro
   const now = timestamp();
   const existing = id ? await db.applications.get(id) : undefined;
   if (id && !existing) throw new Error("Application not found. Refresh the workspace and try again.");
+  const stage = input.stage ?? existing?.stage ?? "saved";
+  if (!APPLICATION_STAGES.includes(stage)) throw new Error("Choose a supported application stage.");
   const record: ApplicationRecord = {
     id: existing?.id ?? createId(),
     company: requiredText(input.company, "Company"),
     role: requiredText(input.role, "Role"),
     jobUrl: optionalUrl(input.jobUrl ?? "", "Job URL"),
     appliedAt: input.appliedAt ?? "",
+    stage: stage as ApplicationStage,
+    followUpAt: input.followUpAt ?? existing?.followUpAt ?? "",
     nextStep: input.nextStep?.trim() ?? "",
     notes: input.notes?.trim() ?? "",
     createdAt: existing?.createdAt ?? now,
@@ -164,6 +168,8 @@ function isApplicationRecord(value: unknown): value is ApplicationRecord {
   if (!isObject(value)) return false;
   return ["id", "company", "role", "jobUrl", "appliedAt", "nextStep", "notes", "createdAt", "updatedAt"]
     .every((key) => isString(value[key])) &&
+    (value.stage === undefined || APPLICATION_STAGES.includes(value.stage as ApplicationStage)) &&
+    (value.followUpAt === undefined || isString(value.followUpAt)) &&
     isSafeOptionalUrl(value.jobUrl) &&
     Boolean(value.id) && Boolean(value.company) && Boolean(value.role);
 }
@@ -208,7 +214,7 @@ export async function importEvidenceReport(raw: unknown): Promise<{ applications
     if (evidence.some((item) => item.applicationId && !availableApplicationIds.has(item.applicationId))) {
       throw new Error("The report contains evidence linked to an application that is not available.");
     }
-    await db.applications.bulkPut(applications);
+    await db.applications.bulkPut(applications.map((item) => ({ ...item, stage: item.stage ?? "saved", followUpAt: item.followUpAt ?? "" })));
     await db.evidence.bulkPut(evidence);
   });
 
