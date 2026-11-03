@@ -121,16 +121,26 @@ export default function App() {
 
   async function removeApplication(id: string) {
     if (!window.confirm("Delete this application? Its evidence items will be kept but unlinked.")) return;
-    await deleteApplication(id);
-    await refresh();
-    setNotice("Application deleted. Related evidence was preserved.");
+    try {
+      await deleteApplication(id);
+      await refresh();
+      setNotice("Application deleted. Related evidence was preserved.");
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not delete application.");
+    }
   }
 
   async function removeEvidence(id: string) {
     if (!window.confirm("Delete this evidence item? This cannot be undone.")) return;
-    await deleteEvidence(id);
-    await refresh();
-    setNotice("Evidence item deleted.");
+    try {
+      await deleteEvidence(id);
+      await refresh();
+      setNotice("Evidence item deleted.");
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not delete evidence item.");
+    }
   }
 
   async function changeStatus(id: string, status: EvidenceStatus) {
