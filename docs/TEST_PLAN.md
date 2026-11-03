@@ -4,19 +4,19 @@ This document records the checks actually performed for the Day 1 release.
 
 ## Automated verification
 
-Latest verified commit: `949359c358d5106b8d239ac36f2088eb184f6c43` (GitHub Actions run `41693771287`, success).
+Latest verified commit: `0ec4211446a600a57a13af274afe5fe43f9c303e` (GitHub Actions run `41694236806`, success).
 
 GitHub Actions completed successfully with:
 - `npm install` — completed (dependencies are exact-pinned directly in `package.json`; there is no committed lockfile).
 - `npm audit --audit-level=moderate` — zero known vulnerabilities.
-- `npm test` — 14 tests passed across 3 test files (10 repository/data-layer tests, 3 UI component tests, and 1 IndexedDB migration test) on run `41693771287`.
+- `npm test` — 14 tests passed across 3 test files (10 repository/data-layer tests, 3 UI component tests, and 1 IndexedDB migration test).
 - `npm run build` — TypeScript project check and Vite production build passed.
 
 The repository tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, dangling application references, and IndexedDB v1-to-v2 migration with preservation of linked evidence. UI tests cover initial rendering, opening the application form, and keeping application choices available while evidence search filters the lists.
 
 ## Production browser walkthrough
 
-Performed against the latest READY Vercel production deployment using Playwright 1.64.1 and Chromium 156.
+Performed against the latest READY Vercel production deployment using Playwright 1.64.1 and Chromium 156. This was a manual/scripted release walkthrough; the Playwright script is not committed and this walkthrough is not currently a GitHub Actions job.
 
 **PASS** One end-to-end workflow passed, covering:
 - Load the deployed application and render the empty workspace.
@@ -41,8 +41,11 @@ Performed against the latest READY Vercel production deployment using Playwright
 - Export happens only after the user's explicit action.
 - Data does not automatically sync across browsers or devices.
 
-## Known limitations
+## Known limitations and pending hardening
 
+- No committed `package-lock.json`; CI currently uses `npm install`, so transitive dependency resolution is not fully reproducible.
+- No committed Playwright test suite or browser E2E job in GitHub Actions.
+- Cross-browser (Firefox/Safari), real Android/iOS device, keyboard-only, screen-reader, and formal accessibility-audit coverage remains outstanding.
 - No cross-device synchronization, login/account system, recruiter email integration, push notifications, or background reminders.
 - Follow-up reminders are displayed when the user opens the workspace.
 - Browser site-data clearing can remove IndexedDB records; users should export JSON backups periodically.
@@ -50,4 +53,4 @@ Performed against the latest READY Vercel production deployment using Playwright
 
 ## Release gate
 
-Automated checks, production build, security audit, and the production browser walkthrough passed. The Day 1 release is ready for use within the limitations listed above.
+The automated tests, production build, security audit, and the described production browser walkthrough passed on the recorded versions above. This supports the Day 1 functional release; it does not mean the pending repository-hardening and cross-platform checks are complete.

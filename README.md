@@ -21,7 +21,7 @@ Application and evidence records are stored in the current browser's IndexedDB. 
 
 The Day 1 application is implemented and deployed at https://job-application-evidence-planner.vercel.app/. The production browser walkthrough passed on the latest Vercel build for application/evidence CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, backup merge, deletion confirmation, privacy request checks, mobile overflow, and the evidence-search/application-selector regression.
 
-GitHub Actions run `41693771287` passed on commit `949359c358d5106b8d239ac36f2088eb184f6c43`: 14 tests across 3 files, TypeScript checks, Vite production build, dependency installation, and `npm audit --audit-level=moderate` with zero known vulnerabilities.
+The latest verified GitHub Actions run is **41694236806** on commit **0ec4211446a600a57a13af274afe5fe43f9c303e** (success). It passed 14 tests across 3 files, TypeScript checks, the Vite production build, and `npm audit --audit-level=moderate` with zero known vulnerabilities.
 
 | Area | Verified status |
 | --- | --- |
@@ -30,10 +30,10 @@ GitHub Actions run `41693771287` passed on commit `949359c358d5106b8d239ac36f208
 | Evidence readiness | Passed in production browser walkthrough |
 | Backup export/import/merge | Passed in repository tests and production browser walkthrough |
 | Browser-local persistence | Passed in production browser walkthrough |
-| Production build and dependency audit | Passed in GitHub Actions run `41693771287` |
+| Production build and dependency audit | Passed in GitHub Actions run `41694236806` |
 | Production deployment | Vercel deployment READY; public URL returned HTTP 200 |
 
-There is no committed npm lockfile. Direct dependencies are pinned in `package.json`, but transitive dependency resolution is not fully reproducible.
+**Repository hardening still pending:** there is no committed `package-lock.json`, so CI currently uses `npm install` and transitive dependency resolution is not fully reproducible. A permanent Playwright end-to-end suite and cross-browser/accessibility/device testing are also not yet part of CI. These are release-hardening tasks, not claims of completed verification.
 
 ## Project documentation
 
