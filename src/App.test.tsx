@@ -55,6 +55,7 @@ describe("application workspace UI", () => {
     expect(container.querySelector('select')).not.toBeNull();
   });
   it("keeps all application choices available while evidence search filters the lists", async () => {
+    await db.open();
     const applicationId = await saveApplication({ company: "Northstar Systems", role: "Platform Engineer" });
     await act(async () => {
       root.render(createElement(App));
