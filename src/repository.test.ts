@@ -81,10 +81,16 @@ describe("evidence records", () => {
   });
 
   it("searches application and evidence text", async () => {
-    await saveApplication({ company: "Northstar", role: "Platform Engineer" });
-    await saveEvidence({ requirement: "Kubernetes", evidenceTitle: "Cluster lab" });
-    const result = await searchRecords("kubernetes");
-    expect(result.evidence).toHaveLength(1);
-    expect(result.applications).toHaveLength(0);
+    const applicationId = await saveApplication({ company: "Northstar Systems", role: "Platform Engineer" });
+    await saveEvidence({ applicationId, requirement: "Container orchestration", evidenceTitle: "Cluster lab" });
+    await saveEvidence({ requirement: "Kubernetes", evidenceTitle: "Independent cluster lab" });
+
+    const byRequirement = await searchRecords("kubernetes");
+    expect(byRequirement.evidence).toHaveLength(1);
+    expect(byRequirement.applications).toHaveLength(0);
+
+    const byLinkedCompany = await searchRecords("northstar");
+    expect(byLinkedCompany.evidence).toHaveLength(1);
+    expect(byLinkedCompany.applications).toHaveLength(1);
   });
 });
