@@ -181,3 +181,6 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
 .coverage-row strong { color: #c5cad6; font-size: 9px; font-weight: 650; }
 .coverage-track { grid-column: 1 / -1; height: 5px; border-radius: 8px; overflow: hidden; background: #272e3c; }
 .coverage-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7960d8, #a78bfa); }
+
+.filter-label { display: grid; grid-template-columns: auto minmax(140px, 1fr); align-items: center; gap: 10px; color: #9299aa; font-size: 10px; margin: 0 0 13px; }
+.filter-label select { color: #e4e6ed; background: #10151f; border: 1px solid #30394b; border-radius: 6px; padding: 8px 10px; font-size: 10px; color-scheme: dark; }
