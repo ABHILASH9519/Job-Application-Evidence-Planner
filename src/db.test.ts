@@ -8,7 +8,7 @@ describe("IndexedDB schema migration", () => {
     await db.delete();
   });
 
-  it("upgrades version 1 application records with default stage and follow-up fields", async () => {
+  it("upgrades version 1 application and evidence records without data loss", async () => {
     await db.delete();
 
     const legacy = new Dexie("job-application-evidence-planner");
@@ -18,7 +18,7 @@ describe("IndexedDB schema migration", () => {
     });
 
     await legacy.open();
-    await legacy.table("evidence").put({\n      id: "legacy-evidence",\n      applicationId: "legacy-app",\n      requirement: "Build APIs",\n      evidenceTitle: "Legacy API project",\n      evidenceUrl: "",\n      contribution: "Implemented endpoints",\n      context: "Legacy schema record",\n      status: "completed",\n      createdAt: "2026-10-01T00:00:00.000Z",\n      updatedAt: "2026-10-01T00:00:00.000Z",\n    });\n    await legacy.table("applications").put({
+    await legacy.table("applications").put({
       id: "legacy-app",
       company: "Legacy Company",
       role: "Software Engineer",
@@ -26,6 +26,18 @@ describe("IndexedDB schema migration", () => {
       appliedAt: "2026-10-01",
       nextStep: "Follow up",
       notes: "Created before pipeline stages",
+      createdAt: "2026-10-01T00:00:00.000Z",
+      updatedAt: "2026-10-01T00:00:00.000Z",
+    });
+    await legacy.table("evidence").put({
+      id: "legacy-evidence",
+      applicationId: "legacy-app",
+      requirement: "Build APIs",
+      evidenceTitle: "Legacy API project",
+      evidenceUrl: "",
+      contribution: "Implemented endpoints",
+      context: "Legacy schema record",
+      status: "completed",
       createdAt: "2026-10-01T00:00:00.000Z",
       updatedAt: "2026-10-01T00:00:00.000Z",
     });
@@ -38,6 +50,11 @@ describe("IndexedDB schema migration", () => {
       stage: "saved",
       followUpAt: "",
       company: "Legacy Company",
+    });
+    expect(await db.evidence.get("legacy-evidence")).toMatchObject({
+      applicationId: "legacy-app",
+      status: "completed",
+      evidenceTitle: "Legacy API project",
     });
   });
 });
