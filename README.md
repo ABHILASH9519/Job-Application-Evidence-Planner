@@ -24,7 +24,7 @@ The initial product direction is local-first: application and evidence records s
 
 ## Project status
 
-The current implementation includes pipeline stages, follow-up dates with overdue reminders on the overview, stage filtering, and per-application evidence readiness. GitHub Actions verified 12 automated tests (10 repository/data tests and 2 UI smoke tests), the TypeScript check, the Vite production build, and a zero-vulnerability npm audit on commit `93be0b1`. Manual desktop/mobile browser verification, a committed npm lockfile, and live deployment remain release tasks.
+The current implementation includes pipeline stages, follow-up dates with overdue reminders on the overview, stage filtering, and per-application evidence readiness. GitHub Actions verified 12 automated tests (10 repository/data tests and 2 UI smoke tests), the TypeScript check, the Vite production build, and a zero-vulnerability npm audit passed on commit `93be0b1`. A reproducible npm lockfile is now committed; the CI workflow uses `npm ci` and a blocking dependency audit.
 
 This repository is being built incrementally. Product and architecture decisions are documented before the application implementation is marked complete.
 
@@ -33,9 +33,9 @@ This repository is being built incrementally. Product and architecture decisions
 | Product scope | Documented |
 | Initial architecture | Documented |
 | Application implementation | Local CRUD, search, pipeline stages, follow-up dates, evidence readiness, JSON export and merge-based import committed; runtime validation pending |
-| Automated tests | 12 tests passed in GitHub Actions on commit `93be0b1` (10 data-layer, 2 UI smoke) |
-| Production build | `tsc -b` and Vite 8 production build passed in GitHub Actions on commit `93be0b1` |
-| CI validation | Tests and production build passed; npm audit reported 0 vulnerabilities on commit `93be0b1` |
+| Automated tests | 12 tests passed in GitHub Actions on commit `93be0b1` (10 data-layer, 2 UI smoke); rerun after lockfile/CI update |
+| Production build | `tsc -b` and Vite 8 production build passed in GitHub Actions on commit `93be0b1`; rerun after lockfile/CI update |
+| CI validation | Tests, production build, and zero-vulnerability audit passed; reproducible `npm ci` workflow is committed and awaiting its run |
 | Deployment | Not configured |
 
 ## Project documentation
@@ -52,7 +52,7 @@ This repository is being built incrementally. Product and architecture decisions
 Requirements: Node.js 20 or newer and npm.
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 

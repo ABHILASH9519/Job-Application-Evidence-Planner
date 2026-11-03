@@ -23,8 +23,8 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [x] `npm audit` reports zero known vulnerabilities on commit `93be0b1`.
 
 ## Repository and delivery
-- [ ] Source is committed; a generated `package-lock.json` is still pending.
-- [ ] CI runs install, tests, audit, and build; reproducible `npm ci` remains pending until the lockfile is committed.
+- [x] Source and generated `package-lock.json` are committed.
+- [x] CI is configured to use `npm ci`, a blocking `npm audit --audit-level=moderate`, tests, and production build (latest workflow run pending).
 - [ ] README setup instructions match the actual scripts.
 - [ ] Known limitations are documented.
 - [ ] Release artifact or deployment is available, if deployment is in scope.
