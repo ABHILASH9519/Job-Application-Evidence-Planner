@@ -1,0 +1,255 @@
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  buildEvidenceReport,
+  deleteApplication,
+  deleteEvidence,
+  listApplications,
+  listEvidence,
+  saveApplication,
+  saveEvidence,
+  searchRecords,
+  updateEvidenceStatus,
+  type ApplicationInput,
+  type EvidenceInput,
+} from "./repository";
+import type { ApplicationRecord, EvidenceRecord, EvidenceStatus } from "./types";
+
+const emptyApplication: ApplicationInput = { company: "", role: "", jobUrl: "", appliedAt: "", nextStep: "", notes: "" };
+const emptyEvidence: EvidenceInput = { applicationId: "", requirement: "", evidenceTitle: "", evidenceUrl: "", contribution: "", context: "", status: "planned" };
+
+function formatStatus(status: EvidenceStatus): string {
+  return status === "in_progress" ? "In progress" : status[0].toUpperCase() + status.slice(1);
+}
+
+export default function App() {
+  const [applications, setApplications] = useState<ApplicationRecord[]>([]);
+  const [evidence, setEvidence] = useState<EvidenceRecord[]>([]);
+  const [query, setQuery] = useState("");
+  const [activeView, setActiveView] = useState<"overview" | "applications" | "evidence">("overview");
+  const [applicationForm, setApplicationForm] = useState<ApplicationInput>(emptyApplication);
+  const [evidenceForm, setEvidenceForm] = useState<EvidenceInput>(emptyEvidence);
+  const [editingApplication, setEditingApplication] = useState<string | undefined>();
+  const [editingEvidence, setEditingEvidence] = useState<string | undefined>();
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  async function refresh(search = query) {
+    const result = await searchRecords(search);
+    setApplications(result.applications);
+    setEvidence(result.evidence);
+  }
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([listApplications(), listEvidence()])
+      .then(([apps, items]) => {
+        if (mounted) {
+          setApplications(apps);
+          setEvidence(items);
+        }
+      })
+      .catch(() => {
+        if (mounted) setError("Local database could not be opened. Try refreshing this page.");
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void refresh(query); }, 120);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  const completedCount = useMemo(() => evidence.filter((item) => item.status === "completed").length, [evidence]);
+  const inProgressCount = useMemo(() => evidence.filter((item) => item.status === "in_progress").length, [evidence]);
+
+  async function submitApplication(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    try {
+      await saveApplication(applicationForm, editingApplication);
+      setApplicationForm(emptyApplication);
+      setEditingApplication(undefined);
+      await refresh();
+      setNotice(editingApplication ? "Application updated." : "Application saved locally.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not save application.");
+    }
+  }
+
+  async function submitEvidence(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    try {
+      await saveEvidence(evidenceForm, editingEvidence);
+      setEvidenceForm(emptyEvidence);
+      setEditingEvidence(undefined);
+      await refresh();
+      setNotice(editingEvidence ? "Evidence updated." : "Evidence saved locally.");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not save evidence.");
+    }
+  }
+
+  function editApplication(item: ApplicationRecord) {
+    setApplicationForm({
+      company: item.company, role: item.role, jobUrl: item.jobUrl,
+      appliedAt: item.appliedAt, nextStep: item.nextStep, notes: item.notes,
+    });
+    setEditingApplication(item.id);
+    setActiveView("applications");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function editEvidence(item: EvidenceRecord) {
+    setEvidenceForm({
+      applicationId: item.applicationId ?? "", requirement: item.requirement,
+      evidenceTitle: item.evidenceTitle, evidenceUrl: item.evidenceUrl,
+      contribution: item.contribution, context: item.context, status: item.status,
+    });
+    setEditingEvidence(item.id);
+    setActiveView("evidence");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function removeApplication(id: string) {
+    if (!window.confirm("Delete this application? Its evidence items will be kept but unlinked.")) return;
+    await deleteApplication(id);
+    await refresh();
+    setNotice("Application deleted. Related evidence was preserved.");
+  }
+
+  async function removeEvidence(id: string) {
+    if (!window.confirm("Delete this evidence item? This cannot be undone.")) return;
+    await deleteEvidence(id);
+    await refresh();
+    setNotice("Evidence item deleted.");
+  }
+
+  async function changeStatus(id: string, status: EvidenceStatus) {
+    try {
+      await updateEvidenceStatus(id, status);
+      await refresh();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not update status.");
+    }
+  }
+
+  async function exportReport() {
+    const report = await buildEvidenceReport();
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "job-application-evidence-report.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setNotice("Your JSON report has been exported.");
+  }
+
+  const linkedApplication = (id?: string) => applications.find((item) => item.id === id);
+
+  return (
+    <main className="app-shell">
+      <aside className="sidebar">
+        <a className="brand" href="#home" onClick={() => setActiveView("overview")}>
+          <span className="brand-mark">E</span>
+          <span>evidence<span className="brand-light">/planner</span></span>
+        </a>
+        <div className="side-label">WORKSPACE</div>
+        <nav className="side-nav" aria-label="Main navigation">
+          <button className={activeView === "overview" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("overview")}><span>◫</span> Overview</button>
+          <button className={activeView === "applications" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("applications")}><span>▤</span> Applications <b>{applications.length}</b></button>
+          <button className={activeView === "evidence" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("evidence")}><span>◇</span> Evidence library <b>{evidence.length}</b></button>
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="privacy-card"><span className="privacy-dot" /> <div><strong>Private by default</strong><small>Your data stays in this browser.</small></div></div>
+          <small className="version-label">DAY 1 · LOCAL WORKSPACE</small>
+        </div>
+      </aside>
+
+      <section className="main-panel">
+        <header className="topbar">
+          <div className="breadcrumb">Workspace <span>/</span> <strong>{activeView === "overview" ? "Overview" : activeView === "applications" ? "Applications" : "Evidence library"}</strong></div>
+          <div className="top-actions"><span className="local-indicator"><i /> Local storage active</span><button className="button button-secondary button-small" onClick={() => void exportReport()}>↓ Export report</button></div>
+        </header>
+
+        <div className="content">
+          <div className="page-heading">
+            <div><div className="eyebrow">YOUR CAREER WORKSPACE</div><h1>{activeView === "overview" ? "Evidence, organized." : activeView === "applications" ? "Your applications" : "Evidence library"}</h1><p>{activeView === "overview" ? "Connect what a role asks for with the work you have actually done." : activeView === "applications" ? "Keep every opportunity and next step in one place." : "Map role requirements to projects, experience, and real contributions."}</p></div>
+            <button className="button button-primary" onClick={() => { setActiveView("applications"); setEditingApplication(undefined); setApplicationForm(emptyApplication); }}>＋ Add application</button>
+          </div>
+
+          {error && <div className="alert alert-error" role="alert">{error}<button onClick={() => setError("")}>×</button></div>}
+          {notice && <div className="alert alert-success" role="status">{notice}<button onClick={() => setNotice("")}>×</button></div>}
+
+          {activeView === "overview" && <>
+            <div className="stats-grid">
+              <article className="stat-card"><span className="stat-icon violet">▤</span><div className="stat-value">{applications.length}</div><div className="stat-label">Applications tracked</div><div className="stat-foot">Opportunities in your workspace</div></article>
+              <article className="stat-card"><span className="stat-icon blue">◇</span><div className="stat-value">{evidence.length}</div><div className="stat-label">Evidence items</div><div className="stat-foot">Requirements mapped to proof</div></article>
+              <article className="stat-card"><span className="stat-icon amber">◷</span><div className="stat-value">{inProgressCount}</div><div className="stat-label">In progress</div><div className="stat-foot">Evidence still being prepared</div></article>
+              <article className="stat-card"><span className="stat-icon green">✓</span><div className="stat-value">{completedCount}</div><div className="stat-label">Ready to use</div><div className="stat-foot">Completed evidence items</div></article>
+            </div>
+            <div className="section-heading"><div><h2>Recent activity</h2><p>Your latest applications and supporting evidence.</p></div><button className="text-button" onClick={() => setActiveView("evidence")}>View evidence →</button></div>
+            <div className="panel-card">
+              {loading ? <div className="empty-state">Loading your local workspace…</div> : evidence.length === 0 && applications.length === 0 ? <div className="empty-state"><div className="empty-icon">✳</div><h3>Your workspace starts here</h3><p>Add an application, then connect its requirements to projects and experience you can stand behind.</p><button className="button button-primary" onClick={() => setActiveView("applications")}>Add your first application</button></div> : <div className="activity-list">
+                {evidence.slice(0, 5).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon">◇</div><div className="activity-copy"><strong>{item.requirement}</strong><span>{item.evidenceTitle} · {linkedApplication(item.applicationId)?.company ?? "General evidence"}</span></div><StatusPill status={item.status} /></div>)}
+                {applications.slice(0, 3).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">▤</div><div className="activity-copy"><strong>{item.role}</strong><span>{item.company} · Application</span></div><span className="plain-tag">Tracked</span></div>)}
+              </div>}
+            </div>
+            <div className="privacy-banner"><span>◈</span><div><strong>Your information stays yours.</strong><p>Applications and evidence are stored in this browser using IndexedDB. Nothing is uploaded to a server.</p></div></div>
+          </>}
+
+          {activeView === "applications" && <div className="two-column">
+            <section className="panel-card form-card"><div className="card-heading"><div><h2>{editingApplication ? "Edit application" : "Add an application"}</h2><p>Capture the opportunity and your next action.</p></div></div>
+              <form onSubmit={submitApplication} className="form-stack">
+                <label>Company name<input required value={applicationForm.company} onChange={(e) => setApplicationForm({ ...applicationForm, company: e.target.value })} placeholder="e.g. Acme Technologies" /></label>
+                <label>Role title<input required value={applicationForm.role} onChange={(e) => setApplicationForm({ ...applicationForm, role: e.target.value })} placeholder="e.g. Software Engineer" /></label>
+                <label>Job posting URL<input type="url" value={applicationForm.jobUrl} onChange={(e) => setApplicationForm({ ...applicationForm, jobUrl: e.target.value })} placeholder="https://…" /></label>
+                <label>Application date<input type="date" value={applicationForm.appliedAt} onChange={(e) => setApplicationForm({ ...applicationForm, appliedAt: e.target.value })} /></label>
+                <label>Next step<input value={applicationForm.nextStep} onChange={(e) => setApplicationForm({ ...applicationForm, nextStep: e.target.value })} placeholder="e.g. Follow up with recruiter" /></label>
+                <label>Private notes<textarea rows={3} value={applicationForm.notes} onChange={(e) => setApplicationForm({ ...applicationForm, notes: e.target.value })} placeholder="Anything you want to remember…" /></label>
+                <div className="form-actions"><button className="button button-primary" type="submit">{editingApplication ? "Save changes" : "Save application"}</button>{editingApplication && <button className="button button-secondary" type="button" onClick={() => { setEditingApplication(undefined); setApplicationForm(emptyApplication); }}>Cancel</button>}</div>
+              </form>
+            </section>
+            <section className="panel-card list-card"><div className="card-heading"><div><h2>Tracked roles <span className="count">{applications.length}</span></h2><p>All your opportunities in one view.</p></div></div>
+              <SearchBox value={query} onChange={setQuery} />
+              {applications.length === 0 ? <div className="empty-state compact"><h3>No applications yet</h3><p>Your saved roles will appear here.</p></div> : <div className="record-list">{applications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
+            </section>
+          </div>}
+
+          {activeView === "evidence" && <div className="two-column">
+            <section className="panel-card form-card"><div className="card-heading"><div><h2>{editingEvidence ? "Edit evidence" : "Map a requirement"}</h2><p>Connect a role requirement to something real.</p></div></div>
+              <form onSubmit={submitEvidence} className="form-stack">
+                <label>Related application<select value={evidenceForm.applicationId ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, applicationId: e.target.value })}><option value="">General evidence / not role-specific</option>{applications.map((item) => <option value={item.id} key={item.id}>{item.company} — {item.role}</option>)}</select></label>
+                <label>Role requirement<input required value={evidenceForm.requirement} onChange={(e) => setEvidenceForm({ ...evidenceForm, requirement: e.target.value })} placeholder="e.g. Experience building REST APIs" /></label>
+                <label>Evidence title<input required value={evidenceForm.evidenceTitle} onChange={(e) => setEvidenceForm({ ...evidenceForm, evidenceTitle: e.target.value })} placeholder="e.g. API Automation Framework" /></label>
+                <label>Evidence URL<input type="url" value={evidenceForm.evidenceUrl} onChange={(e) => setEvidenceForm({ ...evidenceForm, evidenceUrl: e.target.value })} placeholder="GitHub, portfolio, or demo link" /></label>
+                <label>Your contribution<textarea rows={3} value={evidenceForm.contribution ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, contribution: e.target.value })} placeholder="What did you personally build or contribute?" /></label>
+                <label>Context and limitations<textarea rows={2} value={evidenceForm.context ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, context: e.target.value })} placeholder="Scope, constraints, or details worth clarifying…" /></label>
+                <label>Status<select value={evidenceForm.status ?? "planned"} onChange={(e) => setEvidenceForm({ ...evidenceForm, status: e.target.value as EvidenceStatus })}><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select></label>
+                <div className="form-actions"><button className="button button-primary" type="submit">{editingEvidence ? "Save changes" : "Save evidence"}</button>{editingEvidence && <button className="button button-secondary" type="button" onClick={() => { setEditingEvidence(undefined); setEvidenceForm(emptyEvidence); }}>Cancel</button>}</div>
+              </form>
+            </section>
+            <section className="panel-card list-card"><div className="card-heading"><div><h2>Evidence items <span className="count">{evidence.length}</span></h2><p>What backs up your experience?</p></div></div>
+              <SearchBox value={query} onChange={setQuery} />
+              {evidence.length === 0 ? <div className="empty-state compact"><h3>No evidence mapped yet</h3><p>Add a requirement and connect it to your work.</p></div> : <div className="record-list">{evidence.map((item) => <article className="record-card" key={item.id}><div className="evidence-top"><div className="record-title"><strong>{item.requirement}</strong><span>{item.evidenceTitle} · {linkedApplication(item.applicationId)?.company ?? "General evidence"}</span></div><StatusPill status={item.status} /></div>{item.contribution && <p className="evidence-detail"><b>Contribution:</b> {item.contribution}</p>}{item.context && <p className="evidence-detail"><b>Context:</b> {item.context}</p>}<div className="evidence-footer"><select aria-label="Evidence status" value={item.status} onChange={(e) => void changeStatus(item.id, e.target.value as EvidenceStatus)}><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select>{item.evidenceUrl && <a href={item.evidenceUrl} target="_blank" rel="noreferrer">Open evidence ↗</a>}<div className="record-actions"><button onClick={() => editEvidence(item)}>Edit</button><button onClick={() => void removeEvidence(item.id)}>Delete</button></div></div></article>)}</div>}
+            </section>
+          </div>}
+          <footer className="footer-note">Built for honest applications. Keep your evidence specific, accurate, and yours.</footer>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return <div className="search-box"><span>⌕</span><input value={value} onChange={(event) => onChange(event.target.value)} placeholder="Search records…" aria-label="Search records" />{value && <button onClick={() => onChange("")} aria-label="Clear search">×</button>}</div>;
+}
+
+function StatusPill({ status }: { status: EvidenceStatus }) {
+  return <span className={`status-pill status-${status}`}>{formatStatus(status)}</span>;
+}
