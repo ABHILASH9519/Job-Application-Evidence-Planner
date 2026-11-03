@@ -26,12 +26,18 @@ afterEach(async () => {
 describe("application records", () => {
   it("creates, lists, updates, and deletes an application", async () => {
     const id = await saveApplication({ company: "Northstar", role: "Platform Engineer" });
-    expect((await listApplications())[0]).toMatchObject({ id, company: "Northstar", role: "Platform Engineer" });
+    expect((await listApplications())[0]).toMatchObject({ id, company: "Northstar", role: "Platform Engineer", stage: "saved", followUpAt: "" });
 
     await saveApplication({ company: "Northstar Labs", role: "Cloud Engineer" }, id);
     expect(await db.applications.get(id)).toMatchObject({ company: "Northstar Labs", role: "Cloud Engineer" });
     await deleteApplication(id);
     expect(await listApplications()).toHaveLength(0);
+  });
+
+  it("persists valid pipeline stages and follow-up dates", async () => {
+    const id = await saveApplication({ company: "Northstar", role: "Engineer", stage: "interview", followUpAt: "2026-11-12" });
+    expect(await db.applications.get(id)).toMatchObject({ stage: "interview", followUpAt: "2026-11-12" });
+    await expect(saveApplication({ company: "Northstar", role: "Engineer", stage: "invalid" as never })).rejects.toThrow("supported application stage");
   });
 
   it("requires a company and role and validates URLs", async () => {
@@ -89,6 +95,8 @@ describe("evidence records", () => {
       role: "Cloud Engineer",
       jobUrl: "",
       appliedAt: "2026-11-03",
+      stage: "applied" as const,
+      followUpAt: "2026-11-10",
       nextStep: "",
       notes: "",
       createdAt: "2026-11-03T00:00:00.000Z",
@@ -129,6 +137,8 @@ describe("evidence records", () => {
       role: "Engineer",
       jobUrl: "javascript:alert(1)",
       appliedAt: "",
+      stage: "saved" as const,
+      followUpAt: "",
       nextStep: "",
       notes: "",
       createdAt: "2026-11-03T00:00:00.000Z",

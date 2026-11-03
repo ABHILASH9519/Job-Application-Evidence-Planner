@@ -165,3 +165,14 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
 .import-label { position: relative; display: inline-flex; align-items: center; overflow: hidden; }
 .import-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .import-label:focus-within { outline: 2px solid #8b6cf0; outline-offset: 2px; }
+
+.application-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 10px 0 0 42px; }
+.stage-pill, .follow-up { display: inline-flex; align-items: center; border-radius: 20px; padding: 5px 9px; font-size: 9px; font-weight: 650; background: #252c3a; color: #bfc6d4; }
+.stage-saved { color: #d9bd83; background: #3c3324; }
+.stage-applied { color: #9dc7ff; background: #243951; }
+.stage-assessment { color: #d2b5ff; background: #38294f; }
+.stage-interview { color: #9ee0d3; background: #1d3c3a; }
+.stage-offer { color: #8bd6b3; background: #203c34; }
+.stage-rejected { color: #ffb5b5; background: #3b2028; }
+.follow-up { color: #b9c4d5; background: #222b39; }
+.follow-up.overdue { color: #ffb5b5; background: #3b2028; }

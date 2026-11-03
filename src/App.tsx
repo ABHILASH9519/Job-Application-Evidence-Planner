@@ -13,10 +13,14 @@ import {
   type ApplicationInput,
   type EvidenceInput,
 } from "./repository";
-import type { ApplicationRecord, EvidenceRecord, EvidenceStatus } from "./types";
+import { APPLICATION_STAGES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
 
-const emptyApplication: ApplicationInput = { company: "", role: "", jobUrl: "", appliedAt: "", nextStep: "", notes: "" };
+const emptyApplication: ApplicationInput = { company: "", role: "", jobUrl: "", appliedAt: "", stage: "saved", followUpAt: "", nextStep: "", notes: "" };
 const emptyEvidence: EvidenceInput = { applicationId: "", requirement: "", evidenceTitle: "", evidenceUrl: "", contribution: "", context: "", status: "planned" };
+
+function formatStage(stage: ApplicationStage): string {
+  return stage === "saved" ? "Saved" : stage === "applied" ? "Applied" : stage === "assessment" ? "Assessment" : stage === "interview" ? "Interview" : stage === "offer" ? "Offer" : "Rejected";
+}
 
 function formatStatus(status: EvidenceStatus): string {
   return status === "in_progress" ? "In progress" : status[0].toUpperCase() + status.slice(1);
@@ -104,7 +108,7 @@ export default function App() {
   function editApplication(item: ApplicationRecord) {
     setApplicationForm({
       company: item.company, role: item.role, jobUrl: item.jobUrl,
-      appliedAt: item.appliedAt, nextStep: item.nextStep, notes: item.notes,
+      appliedAt: item.appliedAt, stage: item.stage ?? "saved", followUpAt: item.followUpAt ?? "", nextStep: item.nextStep, notes: item.notes,
     });
     setEditingApplication(item.id);
     setActiveView("applications");
@@ -250,6 +254,8 @@ export default function App() {
                 <label>Role title<input required value={applicationForm.role} onChange={(e) => setApplicationForm({ ...applicationForm, role: e.target.value })} placeholder="e.g. Software Engineer" /></label>
                 <label>Job posting URL<input type="url" value={applicationForm.jobUrl} onChange={(e) => setApplicationForm({ ...applicationForm, jobUrl: e.target.value })} placeholder="https://…" /></label>
                 <label>Application date<input type="date" value={applicationForm.appliedAt} onChange={(e) => setApplicationForm({ ...applicationForm, appliedAt: e.target.value })} /></label>
+                <label>Pipeline stage<select value={applicationForm.stage ?? "saved"} onChange={(e) => setApplicationForm({ ...applicationForm, stage: e.target.value as ApplicationStage })}>{APPLICATION_STAGES.map((stage) => <option key={stage} value={stage}>{formatStage(stage)}</option>)}</select></label>
+                <label>Follow-up date<input type="date" value={applicationForm.followUpAt ?? ""} onChange={(e) => setApplicationForm({ ...applicationForm, followUpAt: e.target.value })} /></label>
                 <label>Next step<input value={applicationForm.nextStep} onChange={(e) => setApplicationForm({ ...applicationForm, nextStep: e.target.value })} placeholder="e.g. Follow up with recruiter" /></label>
                 <label>Private notes<textarea rows={3} value={applicationForm.notes} onChange={(e) => setApplicationForm({ ...applicationForm, notes: e.target.value })} placeholder="Anything you want to remember…" /></label>
                 <div className="form-actions"><button className="button button-primary" type="submit">{editingApplication ? "Save changes" : "Save application"}</button>{editingApplication && <button className="button button-secondary" type="button" onClick={() => { setEditingApplication(undefined); setApplicationForm(emptyApplication); }}>Cancel</button>}</div>
@@ -257,7 +263,7 @@ export default function App() {
             </section>
             <section className="panel-card list-card"><div className="card-heading"><div><h2>Tracked roles <span className="count">{applications.length}</span></h2><p>All your opportunities in one view.</p></div></div>
               <SearchBox value={query} onChange={setQuery} />
-              {applications.length === 0 ? <div className="empty-state compact"><h3>No applications yet</h3><p>Your saved roles will appear here.</p></div> : <div className="record-list">{applications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
+              {applications.length === 0 ? <div className="empty-state compact"><h3>No applications yet</h3><p>Your saved roles will appear here.</p></div> : <div className="record-list">{applications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div><div className="application-meta"><span className={`stage-pill stage-${item.stage ?? "saved"}`}>{formatStage(item.stage ?? "saved")}</span>{item.followUpAt && <span className={item.followUpAt < new Date().toISOString().slice(0, 10) ? "follow-up overdue" : "follow-up"}>{item.followUpAt < new Date().toISOString().slice(0, 10) ? "Overdue · " : "Follow up · "}{item.followUpAt}</span>}</div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
             </section>
           </div>}
 
