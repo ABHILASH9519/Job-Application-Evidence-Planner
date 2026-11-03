@@ -24,6 +24,7 @@ function formatStatus(status: EvidenceStatus): string {
 
 export default function App() {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
+  const [allApplications, setAllApplications] = useState<ApplicationRecord[]>([]);
   const [evidence, setEvidence] = useState<EvidenceRecord[]>([]);
   const [query, setQuery] = useState("");
   const [activeView, setActiveView] = useState<"overview" | "applications" | "evidence">("overview");
@@ -36,8 +37,9 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   async function refresh(search = query) {
-    const result = await searchRecords(search);
+    const [result, allApps] = await Promise.all([searchRecords(search), listApplications()]);
     setApplications(result.applications);
+    setAllApplications(allApps);
     setEvidence(result.evidence);
   }
 
@@ -47,6 +49,7 @@ export default function App() {
       .then(([apps, items]) => {
         if (mounted) {
           setApplications(apps);
+          setAllApplications(apps);
           setEvidence(items);
         }
       })
@@ -174,7 +177,7 @@ export default function App() {
     }
   }
 
-  const linkedApplication = (id?: string) => applications.find((item) => item.id === id);
+  const linkedApplication = (id?: string) => allApplications.find((item) => item.id === id);
 
   return (
     <main className="app-shell">
