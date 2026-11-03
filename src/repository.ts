@@ -141,3 +141,58 @@ export async function buildEvidenceReport(): Promise<EvidenceReport> {
   const [applications, evidence] = await Promise.all([listApplications(), listEvidence()]);
   return { exportedAt: timestamp(), applications, evidence };
 }
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function isApplicationRecord(value: unknown): value is ApplicationRecord {
+  if (!isObject(value)) return false;
+  return ["id", "company", "role", "jobUrl", "appliedAt", "nextStep", "notes", "createdAt", "updatedAt"]
+    .every((key) => isString(value[key])) &&
+    Boolean(value.id) && Boolean(value.company) && Boolean(value.role);
+}
+
+function isEvidenceRecord(value: unknown): value is EvidenceRecord {
+  if (!isObject(value)) return false;
+  const strings = ["id", "requirement", "evidenceTitle", "evidenceUrl", "contribution", "context", "createdAt", "updatedAt"];
+  return strings.every((key) => isString(value[key])) &&
+    (value.applicationId === undefined || isString(value.applicationId)) &&
+    (value.status === "planned" || value.status === "in_progress" || value.status === "completed") &&
+    Boolean(value.id) && Boolean(value.requirement) && Boolean(value.evidenceTitle);
+}
+
+/**
+ * Merge a previously exported report into the local workspace.
+ * Existing records with matching IDs are updated; unrelated local records remain untouched.
+ */
+export async function importEvidenceReport(raw: unknown): Promise<{ applications: number; evidence: number }> {
+  if (!isObject(raw) || !Array.isArray(raw.applications) || !Array.isArray(raw.evidence)) {
+    throw new Error("This file is not a valid Evidence Planner JSON report.");
+  }
+
+  const applications = raw.applications;
+  const evidence = raw.evidence;
+  if (!applications.every(isApplicationRecord) || !evidence.every(isEvidenceRecord)) {
+    throw new Error("The report contains an invalid application or evidence record.");
+  }
+
+  const importedApplicationIds = new Set(applications.map((item) => item.id));
+  await db.transaction("rw", db.applications, db.evidence, async () => {
+    const existingApplications = await db.applications.toArray();
+    const availableApplicationIds = new Set([
+      ...existingApplications.map((item) => item.id),
+      ...importedApplicationIds,
+    ]);
+    if (evidence.some((item) => item.applicationId && !availableApplicationIds.has(item.applicationId))) {
+      throw new Error("The report contains evidence linked to an application that is not available.");
+    }
+    await db.applications.bulkPut(applications);
+    await db.evidence.bulkPut(evidence);
+  });
+
+  return { applications: applications.length, evidence: evidence.length };
+}
