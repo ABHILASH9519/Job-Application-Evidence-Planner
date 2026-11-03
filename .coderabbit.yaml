@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: true
+  request_changes_workflow: false
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - "main"
+  path_instructions:
+    - path: "src/**"
+      instructions: |
+        Prioritize correctness, state consistency, React lifecycle behavior, accessible
+        interactions, responsive behavior, and user-visible error handling.
+    - path: "**/*"
+      instructions: |
+        Review security, data loss, privacy, correctness, maintainability, and test coverage.
+        Treat IndexedDB as user-owned data. Flag unsafe migrations, destructive writes,
+        missing transaction boundaries, and import/merge paths that can corrupt or discard
+        records. Validate untrusted JSON, IDs, dates, and URLs. Check that exported data
+        does not unexpectedly leave the browser and that secrets are never committed.
+        Require regression tests for bug fixes and migration tests for persisted schema
+        changes. Prefer actionable high-signal findings over stylistic nitpicks.
