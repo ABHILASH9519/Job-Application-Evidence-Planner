@@ -18,7 +18,7 @@ describe("IndexedDB schema migration", () => {
     });
 
     await legacy.open();
-    await legacy.table("applications").put({
+    await legacy.table("evidence").put({\n      id: "legacy-evidence",\n      applicationId: "legacy-app",\n      requirement: "Build APIs",\n      evidenceTitle: "Legacy API project",\n      evidenceUrl: "",\n      contribution: "Implemented endpoints",\n      context: "Legacy schema record",\n      status: "completed",\n      createdAt: "2026-10-01T00:00:00.000Z",\n      updatedAt: "2026-10-01T00:00:00.000Z",\n    });\n    await legacy.table("applications").put({
       id: "legacy-app",
       company: "Legacy Company",
       role: "Software Engineer",
