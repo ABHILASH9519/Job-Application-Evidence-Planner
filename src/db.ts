@@ -16,7 +16,7 @@ class EvidencePlannerDatabase extends Dexie {
         applications: "id, company, role, appliedAt, stage, followUpAt, updatedAt",
         evidence: "id, applicationId, requirement, evidenceTitle, status, updatedAt",
       })
-      .upgrade((transaction) => transaction.table("applications").toCollection().modify((record: Record<string, unknown>) => {
+      .upgrade((transaction) => transaction.table("applications").toCollection().modify((record: ApplicationRecord) => {
         if (!record.stage) record.stage = "saved";
         if (!record.followUpAt) record.followUpAt = "";
       }));

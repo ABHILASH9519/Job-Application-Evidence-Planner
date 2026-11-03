@@ -6,6 +6,9 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [ ] Application create, read, update, and delete flows work.
 - [ ] Evidence create, read, update, and delete flows work.
 - [ ] Evidence status transitions are validated.
+- [ ] Application pipeline stages are validated and can be updated.
+- [ ] Follow-up dates are saved and overdue dates are highlighted.
+- [ ] Per-application evidence readiness reflects completed versus mapped evidence.
 - [ ] Search works across the documented fields.
 - [ ] JSON export preserves all required data.
 - [ ] Browser-local persistence survives reloads.

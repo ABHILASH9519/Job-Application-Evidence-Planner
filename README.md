@@ -8,7 +8,9 @@ A strong application is easier to prepare when each role requirement is connecte
 
 ## Current capabilities
 
-- Track applications by company, role, job URL, application date, next step, and notes.
+- Track applications by company, role, job URL, application date, pipeline stage, follow-up date, next step, and notes.
+- Move opportunities through Saved, Applied, Assessment, Interview, Offer, and Rejected stages.
+- See overdue follow-ups and per-application completed-evidence readiness.
 - Capture role requirements and connect each one to a project, experience, or evidence link.
 - Record the applicant's contribution and relevant limitations or context.
 - Track evidence progress as planned, in progress, or completed.
@@ -28,7 +30,7 @@ This repository is being built incrementally. Product and architecture decisions
 | --- | --- |
 | Product scope | Documented |
 | Initial architecture | Documented |
-| Application implementation | Core UI, local CRUD, search, JSON export and merge-based import committed; validation pending |
+| Application implementation | Local CRUD, search, pipeline stages, follow-up dates, evidence readiness, JSON export and merge-based import committed; runtime validation pending |
 | Automated tests | Data-layer tests expanded; execution pending |
 | CI validation | Workflow committed; run result not yet verified |
 | Deployment | Not configured |
