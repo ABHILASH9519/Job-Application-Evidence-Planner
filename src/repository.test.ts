@@ -40,6 +40,16 @@ describe("application records", () => {
     await expect(saveApplication({ company: "Northstar", role: "Engineer", stage: "invalid" as never })).rejects.toThrow("supported application stage");
   });
 
+
+  it("imports legacy backups with default pipeline and follow-up fields", async () => {
+    const legacyApplication = {
+      id: "legacy-application", company: "Legacy Co", role: "Engineer", jobUrl: "", appliedAt: "",
+      nextStep: "", notes: "", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+    await importEvidenceReport({ applications: [legacyApplication], evidence: [] });
+    expect(await db.applications.get("legacy-application")).toMatchObject({ stage: "saved", followUpAt: "" });
+  });
+
   it("requires a company and role and validates URLs", async () => {
     await expect(saveApplication({ company: " ", role: "Engineer" })).rejects.toThrow("Company is required");
     await expect(saveApplication({ company: "Northstar", role: "Engineer", jobUrl: "javascript:alert(1)" })).rejects.toThrow("HTTP or HTTPS");
@@ -145,6 +155,9 @@ describe("evidence records", () => {
       updatedAt: "2026-11-03T00:00:00.000Z",
     };
     await expect(importEvidenceReport({ applications: [unsafeApplication], evidence: [] }))
+      .rejects.toThrow("invalid application or evidence record");
+
+    await expect(importEvidenceReport({ applications: [{ ...unsafeApplication, jobUrl: "", stage: "unknown" }], evidence: [] }))
       .rejects.toThrow("invalid application or evidence record");
 
     const duplicate = {
