@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   buildEvidenceReport,
   importEvidenceReport,
@@ -35,9 +35,12 @@ export default function App() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
+  const refreshSequence = useRef(0);
 
   async function refresh(search = query) {
+    const requestId = ++refreshSequence.current;
     const [result, allApps] = await Promise.all([searchRecords(search), listApplications()]);
+    if (requestId !== refreshSequence.current) return;
     setApplications(result.applications);
     setAllApplications(allApps);
     setEvidence(result.evidence);
