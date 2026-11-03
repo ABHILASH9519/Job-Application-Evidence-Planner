@@ -14,15 +14,17 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [ ] Browser-local persistence survives reloads.
 
 ## Quality
-- [x] Automated data-layer tests pass in a clean GitHub Actions environment (10 tests, commit `d7f00a6`).
-- [x] Production build succeeds (`tsc -b` and `vite build`, commit `d7f00a6`).
-- [ ] UI smoke tests pass on desktop and mobile-sized viewports.
+- [x] Automated data-layer tests pass in a clean GitHub Actions environment (12 tests, commit `93be0b1`).
+- [x] Production build succeeds (`tsc -b` and `vite build`, commit `93be0b1`).
+- [x] UI component smoke tests pass in jsdom (2 tests, commit `93be0b1`).
+- [ ] Manual browser walkthrough passes on desktop and mobile-sized viewports.
 - [ ] Empty, invalid, and destructive-action states are handled.
-- [ ] No unexpected network transmission of personal application data occurs.
+- [x] Source review confirms the initial app stores user records in IndexedDB and has no application API or analytics integration.
+- [x] `npm audit` reports zero known vulnerabilities on commit `93be0b1`.
 
 ## Repository and delivery
-- [ ] Source and lockfile are committed.
-- [ ] CI installs dependencies reproducibly and runs tests and build.
+- [ ] Source is committed; a generated `package-lock.json` is still pending.
+- [ ] CI runs install, tests, audit, and build; reproducible `npm ci` remains pending until the lockfile is committed.
 - [ ] README setup instructions match the actual scripts.
 - [ ] Known limitations are documented.
 - [ ] Release artifact or deployment is available, if deployment is in scope.
