@@ -14,8 +14,8 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 - [ ] Browser-local persistence survives reloads.
 
 ## Quality
-- [ ] Automated tests pass in a clean environment.
-- [ ] Production build succeeds.
+- [x] Automated data-layer tests pass in a clean GitHub Actions environment (10 tests, commit `d7f00a6`).
+- [x] Production build succeeds (`tsc -b` and `vite build`, commit `d7f00a6`).
 - [ ] UI smoke tests pass on desktop and mobile-sized viewports.
 - [ ] Empty, invalid, and destructive-action states are handled.
 - [ ] No unexpected network transmission of personal application data occurs.

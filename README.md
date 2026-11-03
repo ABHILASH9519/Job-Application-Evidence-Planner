@@ -24,6 +24,8 @@ The initial product direction is local-first: application and evidence records s
 
 ## Project status
 
+The current implementation includes pipeline stages, follow-up dates with overdue reminders on the overview, stage filtering, and per-application evidence readiness. GitHub Actions verified 10 automated data-layer tests and a production build on commit `d7f00a6`. The full release gate is still open while UI smoke testing, dependency audit review, and deployment verification are completed.
+
 This repository is being built incrementally. Product and architecture decisions are documented before the application implementation is marked complete.
 
 | Area | Status |
@@ -31,8 +33,9 @@ This repository is being built incrementally. Product and architecture decisions
 | Product scope | Documented |
 | Initial architecture | Documented |
 | Application implementation | Local CRUD, search, pipeline stages, follow-up dates, evidence readiness, JSON export and merge-based import committed; runtime validation pending |
-| Automated tests | Data-layer tests expanded; execution pending |
-| CI validation | Workflow committed; run result not yet verified |
+| Automated tests | 10 data-layer tests passed in GitHub Actions on commit `d7f00a6` |
+| Production build | `tsc -b` and `vite build` passed in GitHub Actions on commit `d7f00a6` |
+| CI validation | Latest completed run passed tests and production build; dependency audit follow-up and UI smoke tests remain |
 | Deployment | Not configured |
 
 ## Project documentation
