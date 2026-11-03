@@ -18,7 +18,7 @@ The repository tests cover application and evidence CRUD, stage and status valid
 
 Performed against https://job-application-evidence-planner.vercel.app/ using Playwright 1.64.1 and Chromium 156.
 
-<badge>PASS</badge> One end-to-end workflow passed, covering:
+**PASS** One end-to-end workflow passed, covering:
 - Load the deployed application and render the empty workspace.
 - Create and edit an application; set its pipeline stage and an overdue follow-up date.
 - Create and edit linked evidence; mark it completed.

@@ -16,15 +16,15 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 ## Quality
 - [x] Automated data-layer tests pass in a clean GitHub Actions environment (12 tests, commit `54fffc0`).
 - [x] Production build succeeds (`tsc -b` and `vite build`, commit `54fffc0`).
-- [x] UI component smoke tests pass in jsdom (2 tests, commit `93be0b1`).
+- [x] UI component smoke tests pass in jsdom (2 tests, commit `54fffc0`).
 - [x] Production browser walkthrough passed on desktop and a 390px mobile viewport (Playwright, Chromium 156).
 - [x] Empty, invalid, and destructive-action states are covered by UI/repository checks and confirmed destructive-action dialogs.
 - [x] Source review confirms the initial app stores user records in IndexedDB and has no application API or analytics integration.
-- [x] `npm audit` reports zero known vulnerabilities on commit `93be0b1`.
+- [x] `npm audit --audit-level=moderate` reports zero known vulnerabilities on commit `54fffc0`.
 
 ## Repository and delivery
 - [x] Source and generated `package-lock.json` are committed.
-- [x] CI is configured to use `npm ci`, a blocking `npm audit --audit-level=moderate`, tests, and production build (latest workflow run pending).
+- [x] CI uses `npm ci`, a blocking `npm audit --audit-level=moderate`, tests, and production build; all passed on commit `54fffc0`.
 - [x] README setup instructions match the actual scripts.
 - [x] Known limitations are documented (browser-local data, no cross-device sync or push notifications, manual backups).
 - [x] Production deployment is READY at https://job-application-evidence-planner.vercel.app/ (HTTP 200).
