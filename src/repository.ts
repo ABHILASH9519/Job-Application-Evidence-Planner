@@ -46,6 +46,7 @@ export async function listApplications(): Promise<ApplicationRecord[]> {
 export async function saveApplication(input: ApplicationInput, id?: string): Promise<string> {
   const now = timestamp();
   const existing = id ? await db.applications.get(id) : undefined;
+  if (id && !existing) throw new Error("Application not found. Refresh the workspace and try again.");
   const record: ApplicationRecord = {
     id: existing?.id ?? createId(),
     company: requiredText(input.company, "Company"),
@@ -81,6 +82,7 @@ export async function listEvidence(): Promise<EvidenceRecord[]> {
 export async function saveEvidence(input: EvidenceInput, id?: string): Promise<string> {
   const now = timestamp();
   const existing = id ? await db.evidence.get(id) : undefined;
+  if (id && !existing) throw new Error("Evidence item not found. Refresh the workspace and try again.");
   const status = input.status ?? existing?.status ?? "planned";
   if (!EVIDENCE_STATUSES.includes(status)) throw new Error("Choose a supported evidence status.");
   if (input.applicationId && !(await db.applications.get(input.applicationId))) {
