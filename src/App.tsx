@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   buildEvidenceReport,
+  importEvidenceReport,
   deleteApplication,
   deleteEvidence,
   listApplications,
@@ -139,15 +140,38 @@ export default function App() {
   }
 
   async function exportReport() {
-    const report = await buildEvidenceReport();
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "job-application-evidence-report.json";
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setNotice("Your JSON report has been exported.");
+    try {
+      const report = await buildEvidenceReport();
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "job-application-evidence-report.json";
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setNotice("Your JSON report has been exported.");
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not export your report.");
+    }
+  }
+
+  async function importBackup(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const parsed: unknown = JSON.parse(await file.text());
+      const counts = await importEvidenceReport(parsed);
+      setQuery("");
+      await refresh("");
+      setNotice(`Imported ${counts.applications} applications and ${counts.evidence} evidence items. Matching IDs were updated; other local records were kept.`);
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not import this backup file.");
+    } finally {
+      input.value = "";
+    }
   }
 
   const linkedApplication = (id?: string) => applications.find((item) => item.id === id);
@@ -174,7 +198,7 @@ export default function App() {
       <section className="main-panel">
         <header className="topbar">
           <div className="breadcrumb">Workspace <span>/</span> <strong>{activeView === "overview" ? "Overview" : activeView === "applications" ? "Applications" : "Evidence library"}</strong></div>
-          <div className="top-actions"><span className="local-indicator"><i /> Local storage active</span><button className="button button-secondary button-small" onClick={() => void exportReport()}>↓ Export report</button></div>
+          <div className="top-actions"><span className="local-indicator"><i /> Local storage active</span><label className="button button-secondary button-small import-label">↑ Import backup<input className="import-input" type="file" accept="application/json,.json" onChange={(event) => void importBackup(event)} /></label><button className="button button-secondary button-small" onClick={() => void exportReport()}>↓ Export report</button></div>
         </header>
 
         <div className="content">
