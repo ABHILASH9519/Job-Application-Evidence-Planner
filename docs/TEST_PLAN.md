@@ -1,50 +1,52 @@
-# Test Plan
+# Test Plan and Verification Report
 
-This plan defines the minimum checks required before calling the initial release usable. It is a checklist, not a report of tests already run.
+This document records the checks actually performed for the Day 1 release.
 
-## Data-layer tests
+## Automated verification
 
-- Create an application and verify generated identity and stored fields.
-- Read an application by identifier.
-- Update application fields and verify the updated timestamp behavior.
-- Delete an application and verify the documented evidence relationship policy.
-- Create evidence with each supported status.
-- Reject unsupported evidence status values.
-- Update contribution and context without losing other fields.
-- Delete an evidence item.
-- Verify search behavior for company, role, requirement, and evidence title.
+Latest verified source commit: `54fffc03bc1f8c5a4390a45411b8766c2f9222ed`
 
-## Persistence tests
+GitHub Actions completed successfully with:
+- `npm ci` — completed.
+- `npm audit --audit-level=moderate` — zero known vulnerabilities.
+- `npm test` — 12 tests passed across 2 test files (10 repository/data-layer tests and 2 UI component smoke tests).
+- `npm run build` — TypeScript project check and Vite production build passed.
 
-- Create records, close/reopen the database connection, and verify records remain.
-- Verify the database can be initialized when no prior data exists.
-- Verify schema upgrades preserve existing records when a version change is introduced.
+The repository tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, and dangling application references.
 
-## Export tests
+## Production browser walkthrough
 
-- Export an application with multiple evidence items.
-- Verify all supported statuses are preserved exactly.
-- Verify contribution, context, URLs, and dates are present when supplied.
-- Verify empty collections export as valid JSON.
-- Verify exported JSON can be parsed by a standard JSON parser.
+Performed against https://job-application-evidence-planner.vercel.app/ using Playwright 1.64.1 and Chromium 156.
 
-## UI smoke tests
+<badge>PASS</badge> One end-to-end workflow passed, covering:
+- Load the deployed application and render the empty workspace.
+- Create and edit an application; set its pipeline stage and an overdue follow-up date.
+- Create and edit linked evidence; mark it completed.
+- Filter applications by stage and verify evidence readiness.
+- Verify the overdue reminder appears on the overview.
+- Export the report and parse the downloaded JSON, including stage and evidence status.
+- Reload and verify IndexedDB persistence.
+- Import the report into a fresh browser context and verify the application/evidence relationship.
+- Merge into a non-empty workspace without deleting an unrelated local application.
+- Confirm delete dialogs and delete evidence/application records.
+- Check the 390px mobile viewport for horizontal overflow.
+- Observe browser requests during the workflow; no third-party or external application-data requests were made.
 
-- Create, edit, search, and delete an application.
-- Create, edit, search, and delete evidence.
-- Change evidence status and confirm the visible state updates.
-- Check empty states, required-field validation, and invalid URL handling.
-- Reload the page and verify saved records remain.
-- Test a narrow mobile viewport and a desktop viewport.
-- Confirm destructive actions are clear and deliberate.
+## Privacy and data handling
 
-## Privacy checks
+- No account or application backend is required.
+- Application and evidence records are stored in browser IndexedDB.
+- The deployed app serves static frontend assets; records are not sent to an application API.
+- Export happens only after the user's explicit action.
+- Data does not automatically sync across browsers or devices.
 
-- Confirm the initial application does not require an account.
-- Confirm application data is not sent to an application backend.
-- Confirm there are no analytics or external AI requests.
-- Confirm export only occurs after an explicit user action.
+## Known limitations
+
+- No cross-device synchronization, login/account system, recruiter email integration, push notifications, or background reminders.
+- Follow-up reminders are displayed when the user opens the workspace.
+- Browser site-data clearing can remove IndexedDB records; users should export JSON backups periodically.
+- Manual browser verification was performed on desktop and a 390px mobile viewport, not on every browser/device combination.
 
 ## Release gate
 
-Do not mark the project complete until automated tests pass, a production build succeeds, and the UI smoke tests above have been performed. Record actual commands, outcomes, and any known failures in the README or a release note.
+Automated checks, production build, security audit, and the production browser walkthrough passed. The Day 1 release is ready for use within the limitations listed above.

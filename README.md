@@ -24,19 +24,17 @@ The initial product direction is local-first: application and evidence records s
 
 ## Project status
 
-The current implementation includes pipeline stages, follow-up dates with overdue reminders on the overview, stage filtering, and per-application evidence readiness. GitHub Actions verified 12 automated tests (10 repository/data tests and 2 UI smoke tests), the TypeScript check, the Vite production build, and a zero-vulnerability npm audit passed on commit `93be0b1`. A reproducible npm lockfile is now committed; the CI workflow uses `npm ci` and a blocking dependency audit.
-
-This repository is being built incrementally. Product and architecture decisions are documented before the application implementation is marked complete.
+The Day 1 application is implemented and deployed. The production browser walkthrough passed against the live Vercel site, including CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, merge behavior, privacy checks, and a 390px mobile viewport. GitHub Actions passed 12 automated tests, TypeScript checks, the Vite production build, `npm ci`, and a blocking npm audit with zero known vulnerabilities on commit `54fffc0`.
 
 | Area | Status |
 | --- | --- |
 | Product scope | Documented |
 | Initial architecture | Documented |
-| Application implementation | Local CRUD, search, pipeline stages, follow-up dates, evidence readiness, JSON export and merge-based import committed; runtime validation pending |
-| Automated tests | 12 tests passed in GitHub Actions on commit `93be0b1` (10 data-layer, 2 UI smoke); rerun after lockfile/CI update |
-| Production build | `tsc -b` and Vite 8 production build passed in GitHub Actions on commit `93be0b1`; rerun after lockfile/CI update |
-| CI validation | Tests, production build, and zero-vulnerability audit passed; reproducible `npm ci` workflow is committed and awaiting its run |
-| Deployment | Not configured |
+| Application implementation | CRUD, search, pipeline stages, follow-ups, evidence readiness, export/import, and IndexedDB persistence verified in production browser walkthrough |
+| Automated tests | 12 tests passed in GitHub Actions on commit `54fffc0` (10 data-layer, 2 UI smoke) |
+| Production build | `tsc -b` and Vite 8 production build passed in GitHub Actions on commit `54fffc0` |
+| CI validation | `npm ci`, tests, production build, and `npm audit --audit-level=moderate` passed; zero known vulnerabilities on commit `54fffc0` |
+| Deployment | Vercel production deployment READY; public URL returns HTTP 200 |
 
 ## Project documentation
 
@@ -63,7 +61,7 @@ npm test
 npm run build
 ```
 
-The application uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. The initial release stores data in the current browser. Export a JSON backup periodically; importing a backup merges records by ID, updates matching IDs, and preserves unrelated local records. Clearing browser site data can still remove locally stored records.
+The application uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. Application records stay in the current browser's IndexedDB; they are not synced between browsers or devices and there is no account, backend, email reminder, or push notification service. Follow-up reminders are shown when the workspace is opened. Export a JSON backup periodically; importing a backup merges records by ID, updates matching IDs, and preserves unrelated local records. Clearing browser site data can still remove locally stored records.
 
 ## Contributing
 
