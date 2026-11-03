@@ -27,9 +27,9 @@ This repository is being built incrementally. Product and architecture decisions
 | --- | --- |
 | Product scope | Documented |
 | Initial architecture | Documented |
-| Application implementation | Pending source upload and validation |
-| Automated tests | Pending execution |
-| CI validation | Pending execution |
+| Application implementation | Initial UI and data layer committed; validation pending |
+| Automated tests | Test suite committed; execution pending |
+| CI validation | Workflow committed; run result not yet verified |
 | Deployment | Not configured |
 
 ## Project documentation
