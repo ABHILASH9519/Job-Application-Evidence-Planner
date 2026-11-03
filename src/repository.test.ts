@@ -36,6 +36,8 @@ describe("application records", () => {
   it("requires a company and role and validates URLs", async () => {
     await expect(saveApplication({ company: " ", role: "Engineer" })).rejects.toThrow("Company is required");
     await expect(saveApplication({ company: "Northstar", role: "Engineer", jobUrl: "javascript:alert(1)" })).rejects.toThrow("HTTP or HTTPS");
+    await expect(saveApplication({ company: "Northstar", role: "Engineer" }, "missing-application")).rejects.toThrow("Application not found");
+    await expect(saveEvidence({ requirement: "APIs", evidenceTitle: "Demo" }, "missing-evidence")).rejects.toThrow("Evidence item not found");
   });
 });
 
