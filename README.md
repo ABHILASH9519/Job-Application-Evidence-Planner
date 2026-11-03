@@ -6,7 +6,7 @@ A privacy-first workspace for organizing job applications and mapping role requi
 
 A strong application is easier to prepare when each role requirement is connected to specific, verifiable evidence. This project is intended to help applicants track opportunities, identify evidence gaps, and prepare consistent application material without losing the context behind each claim.
 
-## Planned capabilities
+## Current capabilities
 
 - Track applications by company, role, job URL, application date, next step, and notes.
 - Capture role requirements and connect each one to a project, experience, or evidence link.
@@ -28,8 +28,8 @@ This repository is being built incrementally. Product and architecture decisions
 | --- | --- |
 | Product scope | Documented |
 | Initial architecture | Documented |
-| Application implementation | Initial UI and data layer committed; validation pending |
-| Automated tests | Test suite committed; execution pending |
+| Application implementation | Core UI, local CRUD, search, JSON export and merge-based import committed; validation pending |
+| Automated tests | Data-layer tests expanded; execution pending |
 | CI validation | Workflow committed; run result not yet verified |
 | Deployment | Not configured |
 
