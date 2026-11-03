@@ -14,6 +14,7 @@ A strong application is easier to prepare when each role requirement is connecte
 - Track evidence progress as planned, in progress, or completed.
 - Search and review application and evidence records.
 - Export a structured application evidence report as JSON.
+- Import a JSON backup by merging records; matching IDs are updated and unrelated local records are preserved.
 
 ## Privacy and data handling
 
@@ -57,7 +58,7 @@ npm test
 npm run build
 ```
 
-The application uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. The initial release stores data in the current browser; clearing browser site data can remove locally stored records, so export a JSON backup when needed.
+The application uses React, TypeScript, Vite, Dexie/IndexedDB, and Vitest. The initial release stores data in the current browser. Export a JSON backup periodically; importing a backup merges records by ID, updates matching IDs, and preserves unrelated local records. Clearing browser site data can still remove locally stored records.
 
 ## Contributing
 
