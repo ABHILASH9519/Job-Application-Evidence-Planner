@@ -24,7 +24,7 @@ The initial product direction is local-first: application and evidence records s
 
 ## Project status
 
-The Day 1 application is implemented and deployed. The production browser walkthrough passed against the live Vercel site, including CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, merge behavior, privacy checks, and a 390px mobile viewport. GitHub Actions passed 12 automated tests, TypeScript checks, the Vite production build, dependency installation, and a blocking npm audit with zero known vulnerabilities on the latest verified source commit. The workflow uses `npm install`; a complete npm lockfile is not included, so transitive dependency resolution is not fully reproducible.
+The Day 1 application is implemented and deployed. The production browser walkthrough passed against the live Vercel site, including CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, merge behavior, privacy checks, and a 390px mobile viewport. GitHub Actions passed 12 automated tests, TypeScript checks, the Vite production build, dependency installation, and a blocking npm audit with zero known vulnerabilities on the commit `ba7e1f1`. The workflow uses `npm install`; a complete npm lockfile is not included, so transitive dependency resolution is not fully reproducible.
 
 | Area | Status |
 | --- | --- |
@@ -33,7 +33,7 @@ The Day 1 application is implemented and deployed. The production browser walkth
 | Application implementation | CRUD, search, pipeline stages, follow-ups, evidence readiness, export/import, and IndexedDB persistence verified in production browser walkthrough |
 | Automated tests | 12 tests passed in GitHub Actions on commit `54fffc0` (10 data-layer, 2 UI smoke) |
 | Production build | `tsc -b` and Vite 8 production build passed in GitHub Actions on commit `54fffc0` |
-| CI validation | Dependency installation, tests, production build, and `npm audit --audit-level=moderate` passed; zero known vulnerabilities on latest verified run |
+| CI validation | Dependency installation, tests, production build, and `npm audit --audit-level=moderate` passed; zero known vulnerabilities; 12 tests passed on commit `ba7e1f1` |
 | Deployment | Vercel production deployment READY; public URL returns HTTP 200 |
 
 ## Project documentation

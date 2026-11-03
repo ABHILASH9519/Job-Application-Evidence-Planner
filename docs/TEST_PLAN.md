@@ -4,7 +4,7 @@ This document records the checks actually performed for the Day 1 release.
 
 ## Automated verification
 
-Latest verified source commit: `54fffc03bc1f8c5a4390a45411b8766c2f9222ed`
+Latest verified source commit: `ba7e1f1b537ebb254839f9462828cc72c40747a4` (GitHub Actions run `41691741019`, success)
 
 GitHub Actions completed successfully with:
 - `npm install` — completed (dependencies are exact-pinned directly in `package.json`; there is no committed lockfile).
