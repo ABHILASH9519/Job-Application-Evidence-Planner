@@ -27,3 +27,9 @@ This checklist is the release gate for Day 1. Items must be checked only after t
 ## Completion rule
 
 Day 1 is complete only when all required implementation and quality checks are verified. Documentation-only progress does not satisfy this release gate.
+
+## Backup and restore
+- [ ] Export a report from a populated browser workspace and confirm the JSON can be parsed.
+- [ ] Import that report into a fresh workspace and verify all records and links are restored.
+- [ ] Import a report into a non-empty workspace and verify unrelated records remain intact.
+- [ ] Verify malformed files, unsafe URLs, duplicate IDs, and dangling links are rejected.
