@@ -143,12 +143,13 @@ export async function searchRecords(query: string): Promise<{ applications: Appl
   const normalized = query.trim().toLocaleLowerCase();
   const [applications, evidence] = await Promise.all([listApplications(), listEvidence()]);
   if (!normalized) return { applications, evidence };
+  const applicationsById = new Map(applications.map((application) => [application.id, application]));
   return {
     applications: applications.filter((item) =>
       [item.company, item.role, item.jobUrl, item.appliedAt, item.stage, item.nextStep, item.notes].some((value) => value.toLocaleLowerCase().includes(normalized))
     ),
     evidence: evidence.filter((item) => {
-      const linkedApplication = applications.find((application) => application.id === item.applicationId);
+      const linkedApplication = item.applicationId ? applicationsById.get(item.applicationId) : undefined;
       return [item.requirement, item.evidenceTitle, item.evidenceUrl, item.contribution, item.context, linkedApplication?.company ?? "", linkedApplication?.role ?? ""]
         .some((value) => value.toLocaleLowerCase().includes(normalized));
     }),
