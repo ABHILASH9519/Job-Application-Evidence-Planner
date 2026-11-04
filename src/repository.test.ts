@@ -220,6 +220,28 @@ describe("evidence records", () => {
       .rejects.toThrow("10,000-record import limit");
   });
 
+  it("searches application dates, stages, and job URLs", async () => {
+    await saveApplication({
+      company: "Searchable Employer",
+      role: "Systems Engineer",
+      jobUrl: "https://careers.example.com/role-123",
+      appliedAt: "2026-11-04",
+      stage: "interview",
+    });
+    expect((await searchRecords("role-123")).applications).toHaveLength(1);
+    expect((await searchRecords("2026-11-04")).applications).toHaveLength(1);
+    expect((await searchRecords("interview")).applications).toHaveLength(1);
+  });
+
+  it("searches evidence URLs", async () => {
+    await saveEvidence({
+      requirement: "Cloud automation",
+      evidenceTitle: "Infrastructure project",
+      evidenceUrl: "https://github.com/example/terraform-lab",
+    });
+    expect((await searchRecords("terraform-lab")).evidence).toHaveLength(1);
+  });
+
   it("searches application and evidence text", async () => {
     const applicationId = await saveApplication({ company: "Northstar Systems", role: "Platform Engineer" });
     await saveEvidence({ applicationId, requirement: "Container orchestration", evidenceTitle: "Cluster lab" });
