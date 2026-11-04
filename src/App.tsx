@@ -221,9 +221,9 @@ export default function App() {
         </a>
         <div className="side-label">WORKSPACE</div>
         <nav className="side-nav" aria-label="Main navigation">
-          <button className={activeView === "overview" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("overview")}><span>◫</span> Overview</button>
-          <button className={activeView === "applications" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("applications")}><span>▤</span> Applications <b>{applications.length}</b></button>
-          <button className={activeView === "evidence" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("evidence")}><span>◇</span> Evidence library <b>{evidence.length}</b></button>
+          <button aria-current={activeView === "overview" ? "page" : undefined} className={activeView === "overview" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("overview")}><span>◫</span> Overview</button>
+          <button aria-current={activeView === "applications" ? "page" : undefined} className={activeView === "applications" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("applications")}><span>▤</span> Applications <b>{applications.length}</b></button>
+          <button aria-current={activeView === "evidence" ? "page" : undefined} className={activeView === "evidence" ? "nav-item active" : "nav-item"} onClick={() => setActiveView("evidence")}><span>◇</span> Evidence library <b>{evidence.length}</b></button>
         </nav>
         <div className="sidebar-bottom">
           <div className="privacy-card"><span className="privacy-dot" /> <div><strong>Private by default</strong><small>Your data stays in this browser.</small></div></div>
@@ -231,7 +231,7 @@ export default function App() {
         </div>
       </aside>
 
-      <section className="main-panel">
+      <section className="main-panel" aria-busy={loading}>
         <header className="topbar">
           <div className="breadcrumb">Workspace <span>/</span> <strong>{activeView === "overview" ? "Overview" : activeView === "applications" ? "Applications" : "Evidence library"}</strong></div>
           <div className="top-actions"><span className="local-indicator"><i /> Local storage active</span><label className="button button-secondary button-small import-label">↑ Import backup<input className="import-input" type="file" accept="application/json,.json" onChange={(event) => void importBackup(event)} /></label><button className="button button-secondary button-small" onClick={() => void exportReport()}>↓ Export report</button></div>
@@ -243,8 +243,8 @@ export default function App() {
             <button className="button button-primary" onClick={() => { setActiveView("applications"); setEditingApplication(undefined); setApplicationForm(emptyApplication); }}>＋ Add application</button>
           </div>
 
-          {error && <div className="alert alert-error" role="alert">{error}<button onClick={() => setError("")}>×</button></div>}
-          {notice && <div className="alert alert-success" role="status">{notice}<button onClick={() => setNotice("")}>×</button></div>}
+          {error && <div className="alert alert-error" role="alert" aria-live="assertive">{error}<button onClick={() => setError("")}>×</button></div>}
+          {notice && <div className="alert alert-success" role="status" aria-live="polite">{notice}<button onClick={() => setNotice("")}>×</button></div>}
 
           {activeView === "overview" && <>
             <div className="stats-grid">
