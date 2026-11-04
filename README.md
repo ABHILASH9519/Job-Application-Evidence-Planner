@@ -40,6 +40,7 @@ The latest verified GitHub Actions run is **41694236806** on commit **0ec4211446
 - [Product requirements](docs/PRODUCT_SPEC.md)
 - [Implemented architecture](docs/ARCHITECTURE.md)
 - [Data model](docs/DATA_MODEL.md)
+- [Backup format and compatibility](docs/BACKUP_FORMAT.md)
 - [Test plan and verification report](docs/TEST_PLAN.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Contribution guidelines](CONTRIBUTING.md)
@@ -58,6 +59,7 @@ Run automated tests and the production build:
 ```bash
 npm test
 npm run build
+npm run test:e2e
 ```
 
 Follow-up reminders are displayed when the workspace is opened; there are no email reminders, push notifications, or background notifications. Browser site-data clearing can remove locally stored records, so export JSON backups periodically.
