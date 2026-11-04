@@ -54,6 +54,19 @@ describe("application workspace UI", () => {
     expect(container.querySelector('input[placeholder="e.g. Acme Technologies"]')).not.toBeNull();
     expect(container.querySelector('select')).not.toBeNull();
   });
+  it("exposes client-side length limits that match repository validation", async () => {
+    await act(async () => {
+      root.render(createElement(App));
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    const addButton = Array.from(container.querySelectorAll("button"))
+      .find((button) => button.textContent?.includes("Add application"));
+    await act(async () => addButton?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(container.querySelector<HTMLInputElement>('input[placeholder="e.g. Acme Technologies"]')?.maxLength).toBe(200);
+    expect(container.querySelector<HTMLInputElement>('input[placeholder="e.g. Software Engineer"]')?.maxLength).toBe(200);
+    expect(container.querySelector<HTMLInputElement>('input[placeholder="e.g. Follow up with recruiter"]')?.maxLength).toBe(500);
+  });
+
   it("keeps all application choices available while evidence search filters the lists", async () => {
     await db.open();
     const applicationId = await saveApplication({ company: "Northstar Systems", role: "Platform Engineer" });
