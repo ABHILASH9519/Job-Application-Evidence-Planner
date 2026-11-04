@@ -158,7 +158,7 @@ export async function searchRecords(query: string): Promise<{ applications: Appl
 
 export async function buildEvidenceReport(): Promise<EvidenceReport> {
   const [applications, evidence] = await Promise.all([listApplications(), listEvidence()]);
-  return { exportedAt: timestamp(), applications, evidence };
+  return { schemaVersion: 2, exportedAt: timestamp(), applications, evidence };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -229,6 +229,9 @@ function isEvidenceRecord(value: unknown): value is EvidenceRecord {
 export async function importEvidenceReport(raw: unknown): Promise<{ applications: number; evidence: number }> {
   if (!isObject(raw) || !Array.isArray(raw.applications) || !Array.isArray(raw.evidence)) {
     throw new Error("This file is not a valid Evidence Planner JSON report.");
+  }
+  if (raw.schemaVersion !== undefined && raw.schemaVersion !== 2) {
+    throw new Error("This backup uses an unsupported report schema version.");
   }
   if (raw.applications.length + raw.evidence.length > 10_000) {
     throw new Error("This report exceeds the 10,000-record import limit.");
