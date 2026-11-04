@@ -81,7 +81,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => { void refresh(query); }, 120);
+    const timer = window.setTimeout(() => {
+      void refresh(query).catch(() => setError("Could not refresh local records. Try reloading the workspace."));
+    }, 120);
     return () => window.clearTimeout(timer);
   }, [query]);
 
