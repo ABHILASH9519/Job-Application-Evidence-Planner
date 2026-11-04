@@ -72,6 +72,7 @@ describe("evidence records", () => {
     });
 
     const report = await buildEvidenceReport();
+    expect(report.schemaVersion).toBe(2);
     expect(report.evidence[0]).toMatchObject({
       id: evidenceId,
       applicationId,
@@ -213,6 +214,11 @@ describe("evidence records", () => {
       .rejects.toThrow("invalid application or evidence record");
     await expect(importEvidenceReport({ applications: [{ ...valid, company: "x".repeat(201) }], evidence: [] }))
       .rejects.toThrow("invalid application or evidence record");
+  });
+
+  it("rejects backups from unsupported future schema versions", async () => {
+    await expect(importEvidenceReport({ schemaVersion: 99, applications: [], evidence: [] }))
+      .rejects.toThrow("unsupported report schema version");
   });
 
   it("rejects backup files exceeding the record-count limit", async () => {
