@@ -20,7 +20,21 @@ jobs:
         run: npm install
       - name: Audit dependency vulnerabilities
         run: npm audit --audit-level=moderate
-      - name: Run tests
+      - name: Run unit and integration tests
         run: npm test
       - name: Build production bundle
         run: npm run build
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Run browser end-to-end tests
+        run: npm run test:e2e
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
