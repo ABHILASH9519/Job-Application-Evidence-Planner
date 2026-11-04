@@ -192,6 +192,34 @@ describe("evidence records", () => {
     })).rejects.toThrow("linked to an application that is not available");
   });
 
+  it("rejects oversized user-entered fields before persistence", async () => {
+    await expect(saveApplication({ company: "x".repeat(201), role: "Engineer" }))
+      .rejects.toThrow("Company must be 200 characters or fewer");
+    await expect(saveEvidence({ requirement: "x".repeat(501), evidenceTitle: "Portfolio" }))
+      .rejects.toThrow("Requirement must be 500 characters or fewer");
+    await expect(saveEvidence({ requirement: "Testing", evidenceTitle: "x".repeat(201) }))
+      .rejects.toThrow("Evidence title must be 200 characters or fewer");
+    await expect(saveApplication({ company: "Acme", role: "Engineer", nextStep: "x".repeat(501) }))
+      .rejects.toThrow("Next step must be 500 characters or fewer");
+  });
+
+  it("rejects backup records with invalid timestamps or oversized fields", async () => {
+    const valid = {
+      id: "valid-app", company: "Example", role: "Engineer", jobUrl: "", appliedAt: "",
+      stage: "saved" as const, followUpAt: "", nextStep: "", notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z", updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    await expect(importEvidenceReport({ applications: [{ ...valid, createdAt: "yesterday" }], evidence: [] }))
+      .rejects.toThrow("invalid application or evidence record");
+    await expect(importEvidenceReport({ applications: [{ ...valid, company: "x".repeat(201) }], evidence: [] }))
+      .rejects.toThrow("invalid application or evidence record");
+  });
+
+  it("rejects backup files exceeding the record-count limit", async () => {
+    await expect(importEvidenceReport({ applications: Array(10_001).fill({}), evidence: [] }))
+      .rejects.toThrow("10,000-record import limit");
+  });
+
   it("searches application and evidence text", async () => {
     const applicationId = await saveApplication({ company: "Northstar Systems", role: "Platform Engineer" });
     await saveEvidence({ applicationId, requirement: "Container orchestration", evidenceTitle: "Cluster lab" });
