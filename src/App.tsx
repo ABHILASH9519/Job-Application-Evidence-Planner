@@ -15,6 +15,8 @@ import {
 } from "./repository";
 import { APPLICATION_STAGES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
 
+const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
+
 const emptyApplication: ApplicationInput = { company: "", role: "", jobUrl: "", appliedAt: "", stage: "saved", followUpAt: "", nextStep: "", notes: "" };
 const emptyEvidence: EvidenceInput = { applicationId: "", requirement: "", evidenceTitle: "", evidenceUrl: "", contribution: "", context: "", status: "planned" };
 
@@ -178,8 +180,10 @@ export default function App() {
       const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = "job-application-evidence-report.json";
+      document.body.appendChild(anchor);
       anchor.click();
-      URL.revokeObjectURL(url);
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
       setNotice("Your JSON report has been exported.");
       setError("");
     } catch (reason) {
@@ -192,6 +196,7 @@ export default function App() {
     const file = input.files?.[0];
     if (!file) return;
     try {
+      if (file.size > MAX_BACKUP_BYTES) throw new Error("Backup files must be 10 MB or smaller.");
       const parsed: unknown = JSON.parse(await file.text());
       const counts = await importEvidenceReport(parsed);
       setQuery("");
@@ -262,14 +267,14 @@ export default function App() {
           {activeView === "applications" && <div className="two-column">
             <section className="panel-card form-card"><div className="card-heading"><div><h2>{editingApplication ? "Edit application" : "Add an application"}</h2><p>Capture the opportunity and your next action.</p></div></div>
               <form onSubmit={submitApplication} className="form-stack">
-                <label>Company name<input required value={applicationForm.company} onChange={(e) => setApplicationForm({ ...applicationForm, company: e.target.value })} placeholder="e.g. Acme Technologies" /></label>
-                <label>Role title<input required value={applicationForm.role} onChange={(e) => setApplicationForm({ ...applicationForm, role: e.target.value })} placeholder="e.g. Software Engineer" /></label>
-                <label>Job posting URL<input type="url" value={applicationForm.jobUrl} onChange={(e) => setApplicationForm({ ...applicationForm, jobUrl: e.target.value })} placeholder="https://…" /></label>
+                <label>Company name<input maxLength={200} required value={applicationForm.company} onChange={(e) => setApplicationForm({ ...applicationForm, company: e.target.value })} placeholder="e.g. Acme Technologies" /></label>
+                <label>Role title<input maxLength={200} required value={applicationForm.role} onChange={(e) => setApplicationForm({ ...applicationForm, role: e.target.value })} placeholder="e.g. Software Engineer" /></label>
+                <label>Job posting URL<input maxLength={2048} type="url" value={applicationForm.jobUrl} onChange={(e) => setApplicationForm({ ...applicationForm, jobUrl: e.target.value })} placeholder="https://…" /></label>
                 <label>Application date<input type="date" value={applicationForm.appliedAt} onChange={(e) => setApplicationForm({ ...applicationForm, appliedAt: e.target.value })} /></label>
                 <label>Pipeline stage<select value={applicationForm.stage ?? "saved"} onChange={(e) => setApplicationForm({ ...applicationForm, stage: e.target.value as ApplicationStage })}>{APPLICATION_STAGES.map((stage) => <option key={stage} value={stage}>{formatStage(stage)}</option>)}</select></label>
                 <label>Follow-up date<input type="date" value={applicationForm.followUpAt ?? ""} onChange={(e) => setApplicationForm({ ...applicationForm, followUpAt: e.target.value })} /></label>
-                <label>Next step<input value={applicationForm.nextStep} onChange={(e) => setApplicationForm({ ...applicationForm, nextStep: e.target.value })} placeholder="e.g. Follow up with recruiter" /></label>
-                <label>Private notes<textarea rows={3} value={applicationForm.notes} onChange={(e) => setApplicationForm({ ...applicationForm, notes: e.target.value })} placeholder="Anything you want to remember…" /></label>
+                <label>Next step<input maxLength={500} value={applicationForm.nextStep} onChange={(e) => setApplicationForm({ ...applicationForm, nextStep: e.target.value })} placeholder="e.g. Follow up with recruiter" /></label>
+                <label>Private notes<textarea maxLength={10000} rows={3} value={applicationForm.notes} onChange={(e) => setApplicationForm({ ...applicationForm, notes: e.target.value })} placeholder="Anything you want to remember…" /></label>
                 <div className="form-actions"><button className="button button-primary" type="submit">{editingApplication ? "Save changes" : "Save application"}</button>{editingApplication && <button className="button button-secondary" type="button" onClick={() => { setEditingApplication(undefined); setApplicationForm(emptyApplication); }}>Cancel</button>}</div>
               </form>
             </section>
@@ -284,11 +289,11 @@ export default function App() {
             <section className="panel-card form-card"><div className="card-heading"><div><h2>{editingEvidence ? "Edit evidence" : "Map a requirement"}</h2><p>Connect a role requirement to something real.</p></div></div>
               <form onSubmit={submitEvidence} className="form-stack">
                 <label>Related application<select value={evidenceForm.applicationId ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, applicationId: e.target.value })}><option value="">General evidence / not role-specific</option>{allApplications.map((item) => <option value={item.id} key={item.id}>{item.company} — {item.role}</option>)}</select></label>
-                <label>Role requirement<input required value={evidenceForm.requirement} onChange={(e) => setEvidenceForm({ ...evidenceForm, requirement: e.target.value })} placeholder="e.g. Experience building REST APIs" /></label>
-                <label>Evidence title<input required value={evidenceForm.evidenceTitle} onChange={(e) => setEvidenceForm({ ...evidenceForm, evidenceTitle: e.target.value })} placeholder="e.g. API Automation Framework" /></label>
-                <label>Evidence URL<input type="url" value={evidenceForm.evidenceUrl} onChange={(e) => setEvidenceForm({ ...evidenceForm, evidenceUrl: e.target.value })} placeholder="GitHub, portfolio, or demo link" /></label>
-                <label>Your contribution<textarea rows={3} value={evidenceForm.contribution ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, contribution: e.target.value })} placeholder="What did you personally build or contribute?" /></label>
-                <label>Context and limitations<textarea rows={2} value={evidenceForm.context ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, context: e.target.value })} placeholder="Scope, constraints, or details worth clarifying…" /></label>
+                <label>Role requirement<input maxLength={500} required value={evidenceForm.requirement} onChange={(e) => setEvidenceForm({ ...evidenceForm, requirement: e.target.value })} placeholder="e.g. Experience building REST APIs" /></label>
+                <label>Evidence title<input maxLength={200} required value={evidenceForm.evidenceTitle} onChange={(e) => setEvidenceForm({ ...evidenceForm, evidenceTitle: e.target.value })} placeholder="e.g. API Automation Framework" /></label>
+                <label>Evidence URL<input maxLength={2048} type="url" value={evidenceForm.evidenceUrl} onChange={(e) => setEvidenceForm({ ...evidenceForm, evidenceUrl: e.target.value })} placeholder="GitHub, portfolio, or demo link" /></label>
+                <label>Your contribution<textarea maxLength={10000} rows={3} value={evidenceForm.contribution ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, contribution: e.target.value })} placeholder="What did you personally build or contribute?" /></label>
+                <label>Context and limitations<textarea maxLength={10000} rows={2} value={evidenceForm.context ?? ""} onChange={(e) => setEvidenceForm({ ...evidenceForm, context: e.target.value })} placeholder="Scope, constraints, or details worth clarifying…" /></label>
                 <label>Status<select value={evidenceForm.status ?? "planned"} onChange={(e) => setEvidenceForm({ ...evidenceForm, status: e.target.value as EvidenceStatus })}><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select></label>
                 <div className="form-actions"><button className="button button-primary" type="submit">{editingEvidence ? "Save changes" : "Save evidence"}</button>{editingEvidence && <button className="button button-secondary" type="button" onClick={() => { setEditingEvidence(undefined); setEvidenceForm(emptyEvidence); }}>Cancel</button>}</div>
               </form>
