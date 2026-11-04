@@ -54,6 +54,18 @@ describe("application workspace UI", () => {
     expect(container.querySelector('input[placeholder="e.g. Acme Technologies"]')).not.toBeNull();
     expect(container.querySelector('select')).not.toBeNull();
   });
+  it("announces the active navigation item to assistive technology", async () => {
+    await act(async () => {
+      root.render(createElement(App));
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+    expect(container.querySelector('button[aria-current="page"]')?.textContent).toContain("Overview");
+    const applicationsNav = Array.from(container.querySelectorAll("button"))
+      .find((button) => button.textContent?.includes("Applications"));
+    await act(async () => applicationsNav?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    expect(container.querySelector('button[aria-current="page"]')?.textContent).toContain("Applications");
+  });
+
   it("exposes client-side length limits that match repository validation", async () => {
     await act(async () => {
       root.render(createElement(App));
