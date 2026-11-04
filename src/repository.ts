@@ -1,10 +1,19 @@
 import { db } from "./db";
 import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceReport, type EvidenceStatus } from "./types";
 
+const FIELD_LIMITS = {
+  id: 128,
+  company: 200,
+  role: 200,
+  requirement: 500,
+  evidenceTitle: 200,
+  url: 2048,
+  shortText: 500,
+  longText: 10_000,
+} as const;
+
 function createId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `record-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
@@ -12,9 +21,16 @@ function timestamp(): string {
   return new Date().toISOString();
 }
 
-function requiredText(value: string, field: string): string {
+function requiredText(value: string, field: string, maxLength = FIELD_LIMITS.longText): string {
   const normalized = value.trim();
   if (!normalized) throw new Error(`${field} is required.`);
+  if (normalized.length > maxLength) throw new Error(`${field} must be ${maxLength} characters or fewer.`);
+  return normalized;
+}
+
+function optionalText(value: string | undefined, field: string, maxLength = FIELD_LIMITS.longText): string {
+  const normalized = value?.trim() ?? "";
+  if (normalized.length > maxLength) throw new Error(`${field} must be ${maxLength} characters or fewer.`);
   return normalized;
 }
 
@@ -30,10 +46,9 @@ function optionalDate(value: string, field: string): string {
 function optionalUrl(value: string, field: string): string {
   const normalized = value.trim();
   if (!normalized) return "";
+  if (normalized.length > FIELD_LIMITS.url) throw new Error(`${field} must be ${FIELD_LIMITS.url} characters or fewer.`);
   let parsed: URL;
-  try {
-    parsed = new URL(normalized);
-  } catch {
+  try { parsed = new URL(normalized); } catch {
     throw new Error(`${field} must be a valid HTTP or HTTPS URL.`);
   }
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
@@ -60,14 +75,14 @@ export async function saveApplication(input: ApplicationInput, id?: string): Pro
   if (!APPLICATION_STAGES.includes(stage)) throw new Error("Choose a supported application stage.");
   const record: ApplicationRecord = {
     id: existing?.id ?? createId(),
-    company: requiredText(input.company, "Company"),
-    role: requiredText(input.role, "Role"),
+    company: requiredText(input.company, "Company", FIELD_LIMITS.company),
+    role: requiredText(input.role, "Role", FIELD_LIMITS.role),
     jobUrl: optionalUrl(input.jobUrl ?? "", "Job URL"),
     appliedAt: optionalDate(input.appliedAt ?? "", "Application date"),
     stage: stage as ApplicationStage,
     followUpAt: optionalDate(input.followUpAt ?? existing?.followUpAt ?? "", "Follow-up date"),
-    nextStep: input.nextStep?.trim() ?? "",
-    notes: input.notes?.trim() ?? "",
+    nextStep: optionalText(input.nextStep, "Next step", FIELD_LIMITS.shortText),
+    notes: optionalText(input.notes, "Notes"),
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
@@ -79,11 +94,7 @@ export async function deleteApplication(id: string): Promise<void> {
   await db.transaction("rw", db.applications, db.evidence, async () => {
     const linked = await db.evidence.where("applicationId").equals(id).toArray();
     const now = timestamp();
-    await Promise.all(linked.map((item) => db.evidence.put({
-      ...item,
-      applicationId: undefined,
-      updatedAt: now,
-    })));
+    await Promise.all(linked.map((item) => db.evidence.put({ ...item, applicationId: undefined, updatedAt: now })));
     await db.applications.delete(id);
   });
 }
@@ -104,11 +115,11 @@ export async function saveEvidence(input: EvidenceInput, id?: string): Promise<s
   const record: EvidenceRecord = {
     id: existing?.id ?? createId(),
     applicationId: input.applicationId || undefined,
-    requirement: requiredText(input.requirement, "Requirement"),
-    evidenceTitle: requiredText(input.evidenceTitle, "Evidence title"),
+    requirement: requiredText(input.requirement, "Requirement", FIELD_LIMITS.requirement),
+    evidenceTitle: requiredText(input.evidenceTitle, "Evidence title", FIELD_LIMITS.evidenceTitle),
     evidenceUrl: optionalUrl(input.evidenceUrl ?? "", "Evidence URL"),
-    contribution: input.contribution?.trim() ?? "",
-    context: input.context?.trim() ?? "",
+    contribution: optionalText(input.contribution, "Contribution"),
+    context: optionalText(input.context, "Context"),
     status: status as EvidenceStatus,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
@@ -138,14 +149,8 @@ export async function searchRecords(query: string): Promise<{ applications: Appl
     ),
     evidence: evidence.filter((item) => {
       const linkedApplication = applications.find((application) => application.id === item.applicationId);
-      return [
-        item.requirement,
-        item.evidenceTitle,
-        item.contribution,
-        item.context,
-        linkedApplication?.company ?? "",
-        linkedApplication?.role ?? "",
-      ].some((value) => value.toLocaleLowerCase().includes(normalized));
+      return [item.requirement, item.evidenceTitle, item.contribution, item.context, linkedApplication?.company ?? "", linkedApplication?.role ?? ""]
+        .some((value) => value.toLocaleLowerCase().includes(normalized));
     }),
   };
 }
@@ -154,12 +159,21 @@ export async function buildEvidenceReport(): Promise<EvidenceReport> {
   const [applications, evidence] = await Promise.all([listApplications(), listEvidence()]);
   return { exportedAt: timestamp(), applications, evidence };
 }
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isString(value: unknown): value is string {
   return typeof value === "string";
+}
+
+function isBoundedString(value: unknown, maxLength: number, allowEmpty = true): value is string {
+  return isString(value) && value.length <= maxLength && (allowEmpty || Boolean(value.trim()));
+}
+
+function isValidTimestamp(value: unknown): value is string {
+  return isString(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString() === value;
 }
 
 function isSafeOptionalDate(value: unknown): boolean {
@@ -171,35 +185,40 @@ function isSafeOptionalDate(value: unknown): boolean {
 }
 
 function isSafeOptionalUrl(value: unknown): boolean {
-  if (!isString(value)) return false;
+  if (!isBoundedString(value, FIELD_LIMITS.url)) return false;
   if (!value.trim()) return true;
   try {
     const parsed = new URL(value);
     return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 }
 
 function isApplicationRecord(value: unknown): value is ApplicationRecord {
   if (!isObject(value)) return false;
-  return ["id", "company", "role", "jobUrl", "appliedAt", "nextStep", "notes", "createdAt", "updatedAt"]
-    .every((key) => isString(value[key])) &&
+  return isBoundedString(value.id, FIELD_LIMITS.id, false) &&
+    isBoundedString(value.company, FIELD_LIMITS.company, false) &&
+    isBoundedString(value.role, FIELD_LIMITS.role, false) &&
+    isBoundedString(value.nextStep, FIELD_LIMITS.shortText) &&
+    isBoundedString(value.notes, FIELD_LIMITS.longText) &&
+    isValidTimestamp(value.createdAt) && isValidTimestamp(value.updatedAt) &&
+    isBoundedString(value.jobUrl, FIELD_LIMITS.url) &&
+    isBoundedString(value.appliedAt, 10) &&
     (value.stage === undefined || APPLICATION_STAGES.includes(value.stage as ApplicationStage)) &&
     (value.followUpAt === undefined || isSafeOptionalDate(value.followUpAt)) &&
-    isSafeOptionalDate(value.appliedAt) &&
-    isSafeOptionalUrl(value.jobUrl) &&
-    Boolean(value.id) && Boolean(value.company) && Boolean(value.role);
+    isSafeOptionalDate(value.appliedAt) && isSafeOptionalUrl(value.jobUrl);
 }
 
 function isEvidenceRecord(value: unknown): value is EvidenceRecord {
   if (!isObject(value)) return false;
-  const strings = ["id", "requirement", "evidenceTitle", "evidenceUrl", "contribution", "context", "createdAt", "updatedAt"];
-  return strings.every((key) => isString(value[key])) &&
+  return isBoundedString(value.id, FIELD_LIMITS.id, false) &&
+    isBoundedString(value.requirement, FIELD_LIMITS.requirement, false) &&
+    isBoundedString(value.evidenceTitle, FIELD_LIMITS.evidenceTitle, false) &&
+    isBoundedString(value.contribution, FIELD_LIMITS.longText) &&
+    isBoundedString(value.context, FIELD_LIMITS.longText) &&
+    isValidTimestamp(value.createdAt) && isValidTimestamp(value.updatedAt) &&
     isSafeOptionalUrl(value.evidenceUrl) &&
-    (value.applicationId === undefined || isString(value.applicationId)) &&
-    (value.status === "planned" || value.status === "in_progress" || value.status === "completed") &&
-    Boolean(value.id) && Boolean(value.requirement) && Boolean(value.evidenceTitle);
+    (value.applicationId === undefined || isBoundedString(value.applicationId, FIELD_LIMITS.id, false)) &&
+    (value.status === "planned" || value.status === "in_progress" || value.status === "completed");
 }
 
 /**
@@ -209,6 +228,9 @@ function isEvidenceRecord(value: unknown): value is EvidenceRecord {
 export async function importEvidenceReport(raw: unknown): Promise<{ applications: number; evidence: number }> {
   if (!isObject(raw) || !Array.isArray(raw.applications) || !Array.isArray(raw.evidence)) {
     throw new Error("This file is not a valid Evidence Planner JSON report.");
+  }
+  if (raw.applications.length + raw.evidence.length > 10_000) {
+    throw new Error("This report exceeds the 10,000-record import limit.");
   }
 
   const applications = raw.applications;
@@ -225,10 +247,7 @@ export async function importEvidenceReport(raw: unknown): Promise<{ applications
 
   await db.transaction("rw", db.applications, db.evidence, async () => {
     const existingApplications = await db.applications.toArray();
-    const availableApplicationIds = new Set([
-      ...existingApplications.map((item) => item.id),
-      ...importedApplicationIds,
-    ]);
+    const availableApplicationIds = new Set([...existingApplications.map((item) => item.id), ...importedApplicationIds]);
     if (evidence.some((item) => item.applicationId && !availableApplicationIds.has(item.applicationId))) {
       throw new Error("The report contains evidence linked to an application that is not available.");
     }
