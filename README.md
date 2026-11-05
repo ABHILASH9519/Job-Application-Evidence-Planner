@@ -20,7 +20,7 @@ Application and evidence records are stored in the current browser's IndexedDB. 
 
 ## Project status
 
-The current PR branch contains the Day 1 application, repository hardening, backup validation, evidence status filtering, and committed browser tests. The latest GitHub Actions run **42017725845** on commit **aefb5760815918790895d2c0ec90342f9ee59f66** passed all automated checks:
+The current PR branch contains the Day 1 application, repository hardening, backup validation, evidence status filtering, and committed browser tests. The feature implementation was verified by successful GitHub Actions run **42017725845** on commit **aefb5760815918790895d2c0ec90342f9ee59f66**:
 
 - `npm ci` using the committed `package-lock.json`.
 - `npm audit --audit-level=moderate` with zero reported vulnerabilities.
