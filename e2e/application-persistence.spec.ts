@@ -81,3 +81,28 @@ test("an unsupported backup version is rejected without creating records", async
   await page.getByRole("button", { name: /applications/i }).click();
   await expect(page.getByText("No applications yet")).toBeVisible();
 });
+
+test("deleting an application preserves its evidence as unlinked", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Continuity Labs");
+  await page.getByLabel("Role title").fill("Systems Engineer");
+  await page.getByRole("button", { name: "Save application" }).click();
+
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  await page.getByLabel("Role requirement").fill("Design resilient services");
+  await page.getByLabel("Evidence title").fill("Fault-tolerant worker project");
+  await page.getByLabel("Your contribution").fill("Implemented retry and recovery behavior");
+  await page.getByRole("button", { name: "Save evidence" }).click();
+  await expect(page.getByText("Design resilient services", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: /applications/i }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Delete application" }).click();
+  await expect(page.getByRole("status")).toContainText("Related evidence was preserved.");
+
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  await expect(page.getByText("Design resilient services", { exact: true })).toBeVisible();
+  await expect(page.getByText("Fault-tolerant worker project", { exact: true })).toBeVisible();
+  await expect(page.getByText("General evidence", { exact: true })).toBeVisible();
+});
