@@ -12,6 +12,7 @@ import {
   saveEvidence,
   searchRecords,
   updateEvidenceStatus,
+  updateFollowUpDate,
 } from "./repository";
 
 beforeEach(async () => {
@@ -42,6 +43,17 @@ describe("application records", () => {
   });
 
 
+  it("reschedules and clears follow-up dates with validation", async () => {
+    const id = await saveApplication({ company: "Follow-up Co", role: "Engineer", followUpAt: "2026-11-10" });
+    await updateFollowUpDate(id, "2026-11-17");
+    expect(await db.applications.get(id)).toMatchObject({ followUpAt: "2026-11-17" });
+
+    await updateFollowUpDate(id, "");
+    expect(await db.applications.get(id)).toMatchObject({ followUpAt: "" });
+
+    await expect(updateFollowUpDate(id, "2026-02-30")).rejects.toThrow("Follow-up date must be a valid date");
+    await expect(updateFollowUpDate("missing-id", "2026-11-20")).rejects.toThrow("Application not found");
+  });
   it("imports legacy backups with default pipeline and follow-up fields", async () => {
     const legacyApplication = {
       id: "legacy-application", company: "Legacy Co", role: "Engineer", jobUrl: "", appliedAt: "",
