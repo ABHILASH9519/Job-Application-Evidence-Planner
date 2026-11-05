@@ -93,3 +93,37 @@ test("evidence can be sorted alphabetically by requirement", async ({ page }) =>
   const requirements = await page.locator(".record-card .record-title strong").allTextContents();
   expect(requirements.slice(0, 2)).toEqual(["API reliability", "Zero-downtime deployments"]);
 });
+
+test("overview summarizes pipeline stages and evidence readiness", async ({ page }) => {
+  await page.goto("/");
+  for (const item of [
+    { company: "Pipeline Labs", role: "SRE", stage: "interview" },
+    { company: "Applied Systems", role: "Cloud Engineer", stage: "applied" },
+  ]) {
+    await page.getByRole("button", { name: /add application/i }).click();
+    await page.getByLabel("Company name").fill(item.company);
+    await page.getByLabel("Role title").fill(item.role);
+    await page.getByLabel("Pipeline stage").selectOption(item.stage);
+    await page.getByRole("button", { name: "Save application" }).click();
+    await expect(page.getByRole("status")).toContainText("Application saved locally.");
+  }
+
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  for (const item of [
+    { requirement: "Reliable delivery", title: "Deployment pipeline", status: "completed" },
+    { requirement: "Cloud monitoring", title: "Observability project", status: "planned" },
+  ]) {
+    await page.getByLabel("Role requirement").fill(item.requirement);
+    await page.getByLabel("Evidence title").fill(item.title);
+    await page.locator(".form-card").getByLabel("Status").selectOption(item.status);
+    await page.getByRole("button", { name: "Save evidence" }).click();
+    await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
+  }
+
+  await page.getByRole("button", { name: /overview/i }).click();
+  await expect(page.getByRole("heading", { name: "Application pipeline" })).toBeVisible();
+  await expect(page.getByRole("progressbar", { name: "Interview" })).toHaveAttribute("aria-valuenow", "1");
+  await expect(page.getByRole("progressbar", { name: "Applied" })).toHaveAttribute("aria-valuenow", "1");
+  await expect(page.getByRole("progressbar", { name: "Evidence completion" })).toHaveAttribute("aria-valuenow", "50");
+  await expect(page.getByText("0 of 2 evidence items linked to an application (0%).")).toBeVisible();
+});
