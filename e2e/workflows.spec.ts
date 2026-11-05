@@ -12,7 +12,7 @@ test("application form validates required fields and saves a pipeline stage", as
   await expect(page.getByRole("status")).toContainText("Application saved locally.");
   await page.getByRole("button", { name: /applications/i }).click();
   await expect(page.getByText("Contoso Labs", { exact: true })).toBeVisible();
-  await expect(page.getByText("Interview", { exact: true })).toBeVisible();
+  await expect(page.getByRole("article").getByText("Interview", { exact: true })).toBeVisible();
 });
 
 test("evidence can be linked to an application and marked completed", async ({ page }) => {
@@ -27,7 +27,7 @@ test("evidence can be linked to an application and marked completed", async ({ p
   await page.getByLabel("Role requirement").fill("Design reliable APIs");
   await page.getByLabel("Evidence title").fill("API automation project");
   await page.getByLabel("Your contribution").fill("Built the API regression suite");
-  await page.getByLabel("Status", { exact: true }).selectOption("completed");
+  await page.locator(".form-card").getByLabel("Status").selectOption("completed");
   await page.getByRole("button", { name: "Save evidence" }).click();
 
   await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
