@@ -60,7 +60,7 @@ test("a versioned backup restores applications and linked evidence", async ({ pa
 
   await expect(page.getByRole("status")).toContainText("Imported 1 applications and 1 evidence items.");
   await page.getByRole("button", { name: /applications/i }).click();
-  await expect(page.getByRole("article").getByRole("article").getByText("Imported Systems")).toBeVisible();
+  await expect(page.getByRole("article").getByText("Imported Systems")).toBeVisible();
   await expect(page.getByRole("article").getByText("Interview", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: /evidence library/i }).click();
