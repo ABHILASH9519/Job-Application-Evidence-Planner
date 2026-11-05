@@ -42,6 +42,8 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [stageFilter, setStageFilter] = useState<"all" | ApplicationStage>("all");
   const [evidenceStatusFilter, setEvidenceStatusFilter] = useState<"all" | EvidenceStatus>("all");
+  const [applicationSort, setApplicationSort] = useState<"updated" | "company" | "follow_up" | "stage">("updated");
+  const [evidenceSort, setEvidenceSort] = useState<"updated" | "requirement" | "status">("updated");
   const [activeView, setActiveView] = useState<"overview" | "applications" | "evidence">("overview");
   const [applicationForm, setApplicationForm] = useState<ApplicationInput>(emptyApplication);
   const [evidenceForm, setEvidenceForm] = useState<EvidenceInput>(emptyEvidence);
@@ -98,8 +100,27 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [query]);
 
-  const visibleApplications = useMemo(() => stageFilter === "all" ? applications : applications.filter((item) => (item.stage ?? "saved") === stageFilter), [applications, stageFilter]);
-  const visibleEvidence = useMemo(() => evidenceStatusFilter === "all" ? evidence : evidence.filter((item) => item.status === evidenceStatusFilter), [evidence, evidenceStatusFilter]);
+  const visibleApplications = useMemo(() => {
+    const filtered = stageFilter === "all" ? applications : applications.filter((item) => (item.stage ?? "saved") === stageFilter);
+    return [...filtered].sort((a, b) => {
+      if (applicationSort === "company") return a.company.localeCompare(b.company) || a.role.localeCompare(b.role);
+      if (applicationSort === "stage") return APPLICATION_STAGES.indexOf(a.stage ?? "saved") - APPLICATION_STAGES.indexOf(b.stage ?? "saved");
+      if (applicationSort === "follow_up") {
+        if (!a.followUpAt) return 1;
+        if (!b.followUpAt) return -1;
+        return a.followUpAt.localeCompare(b.followUpAt);
+      }
+      return b.updatedAt.localeCompare(a.updatedAt);
+    });
+  }, [applications, stageFilter, applicationSort]);
+  const visibleEvidence = useMemo(() => {
+    const filtered = evidenceStatusFilter === "all" ? evidence : evidence.filter((item) => item.status === evidenceStatusFilter);
+    return [...filtered].sort((a, b) => {
+      if (evidenceSort === "requirement") return a.requirement.localeCompare(b.requirement);
+      if (evidenceSort === "status") return EVIDENCE_STATUSES.indexOf(a.status) - EVIDENCE_STATUSES.indexOf(b.status);
+      return b.updatedAt.localeCompare(a.updatedAt);
+    });
+  }, [evidence, evidenceStatusFilter, evidenceSort]);
   const dueFollowUps = useMemo(() => allApplications.filter((item) => item.followUpAt && item.followUpAt <= localDate() && item.stage !== "rejected").sort((a, b) => a.followUpAt.localeCompare(b.followUpAt)), [allApplications]);
   const completedCount = useMemo(() => evidence.filter((item) => item.status === "completed").length, [evidence]);
   const inProgressCount = useMemo(() => evidence.filter((item) => item.status === "in_progress").length, [evidence]);
@@ -313,6 +334,7 @@ export default function App() {
             <section className="panel-card list-card"><div className="card-heading"><div><h2>Tracked roles <span className="count">{visibleApplications.length}</span></h2><p>All your opportunities in one view.</p></div></div>
               <SearchBox value={query} onChange={setQuery} />
               <label className="filter-label">Filter by stage<select value={stageFilter} onChange={(e) => setStageFilter(e.target.value as "all" | ApplicationStage)}><option value="all">All stages</option>{APPLICATION_STAGES.map((stage) => <option key={stage} value={stage}>{formatStage(stage)}</option>)}</select></label>
+              <label className="filter-label">Sort applications by<select aria-label="Sort applications by" value={applicationSort} onChange={(e) => setApplicationSort(e.target.value as "updated" | "company" | "follow_up" | "stage")}><option value="updated">Recently updated</option><option value="company">Company A–Z</option><option value="follow_up">Next follow-up</option><option value="stage">Pipeline stage</option></select></label>
               {visibleApplications.length === 0 ? <div className="empty-state compact"><h3>{allApplications.length === 0 ? "No applications yet" : query.trim() ? "No matching applications" : "No roles in this stage"}</h3><p>{allApplications.length === 0 ? "Your saved roles will appear here." : query.trim() ? "Try a different search term or clear the search." : "Choose another stage or clear the filter."}</p></div> : <div className="record-list">{visibleApplications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div><div className="application-meta"><span className={`stage-pill stage-${item.stage ?? "saved"}`}>{formatStage(item.stage ?? "saved")}</span>{item.followUpAt && <span className={item.followUpAt < localDate() ? "follow-up overdue" : "follow-up"}>{item.followUpAt < localDate() ? "Overdue · " : "Follow up · "}{item.followUpAt}</span>}</div><div className="coverage-row"><span>Evidence readiness</span><strong>{allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length}/{allEvidence.filter((e) => e.applicationId === item.id).length} ready</strong><div className="coverage-track"><i style={{ width: `${allEvidence.filter((e) => e.applicationId === item.id).length ? (allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length / allEvidence.filter((e) => e.applicationId === item.id).length) * 100 : 0}%` }} /></div></div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
             </section>
           </div>}
@@ -333,6 +355,7 @@ export default function App() {
             <section className="panel-card list-card"><div className="card-heading"><div><h2>Evidence items <span className="count">{visibleEvidence.length}</span></h2><p>What backs up your experience?</p></div></div>
               <SearchBox value={query} onChange={setQuery} />
               <label className="filter-label">Filter by status<select aria-label="Filter evidence by status" value={evidenceStatusFilter} onChange={(e) => setEvidenceStatusFilter(e.target.value as "all" | EvidenceStatus)}><option value="all">All statuses</option>{EVIDENCE_STATUSES.map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}</select></label>
+              <label className="filter-label">Sort evidence by<select aria-label="Sort evidence by" value={evidenceSort} onChange={(e) => setEvidenceSort(e.target.value as "updated" | "requirement" | "status")}><option value="updated">Recently updated</option><option value="requirement">Requirement A–Z</option><option value="status">Evidence status</option></select></label>
               {visibleEvidence.length === 0 ? <div className="empty-state compact"><h3>{allEvidence.length === 0 ? "No evidence mapped yet" : query.trim() ? "No matching evidence" : "No evidence with this status"}</h3><p>{allEvidence.length === 0 ? "Add a requirement and connect it to your work." : query.trim() ? "Try a different search term or clear the search." : "Choose another status or show all statuses."}</p></div> : <div className="record-list">{visibleEvidence.map((item) => <article className="record-card" key={item.id}><div className="evidence-top"><div className="record-title"><strong>{item.requirement}</strong><span>{item.evidenceTitle} · {linkedApplication(item.applicationId)?.company ?? "General evidence"}</span></div><StatusPill status={item.status} /></div>{item.contribution && <p className="evidence-detail"><b>Contribution:</b> {item.contribution}</p>}{item.context && <p className="evidence-detail"><b>Context:</b> {item.context}</p>}<div className="evidence-footer"><select aria-label="Evidence status" value={item.status} onChange={(e) => void changeStatus(item.id, e.target.value as EvidenceStatus)}><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select>{item.evidenceUrl && <a href={item.evidenceUrl} target="_blank" rel="noreferrer">Open evidence ↗</a>}<div className="record-actions"><button onClick={() => editEvidence(item)}>Edit</button><button onClick={() => void removeEvidence(item.id)}>Delete</button></div></div></article>)}</div>}
             </section>
           </div>}
