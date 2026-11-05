@@ -22,6 +22,13 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install
+      - name: Preserve generated npm lockfile for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-lockfile
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 1
       - name: Audit dependency vulnerabilities
         run: npm audit --audit-level=moderate
       - name: Run unit and integration tests
