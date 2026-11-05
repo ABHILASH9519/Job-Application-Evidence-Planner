@@ -167,3 +167,14 @@ test("overview explains when no stale applications need attention", async ({ pag
   await expect(page.getByRole("heading", { name: "Needs a check-in" })).toBeVisible();
   await expect(page.getByText("No inactive applications need attention right now.")).toBeVisible();
 });
+test("application pipeline stage can be changed from its card", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Stage Shortcut Co");
+  await page.getByLabel("Role title").fill("Cloud Engineer");
+  await page.getByRole("button", { name: "Save application" }).click();
+  await page.getByRole("button", { name: /applications/i }).click();
+  await page.getByLabel("Change stage for Stage Shortcut Co").selectOption("interview");
+  await expect(page.getByRole("status")).toContainText("Application stage updated.");
+  await expect(page.locator(".record-card .stage-interview")).toContainText("Interview");
+});
