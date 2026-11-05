@@ -166,6 +166,7 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
   .two-column { grid-template-columns: 1fr; }
 }
 @media (max-width: 650px) {
+  .dashboard-grid { grid-template-columns: 1fr; margin-top: -10px; }
   .app-shell { display: block; }
   .sidebar { width: 100%; padding: 13px 15px; border-right: 0; border-bottom: 1px solid #222838; }
   .brand { padding: 0 2px; }
