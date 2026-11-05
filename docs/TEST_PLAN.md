@@ -4,7 +4,7 @@ This document distinguishes current branch CI verification from an earlier manua
 
 ## Current automated verification
 
-Latest successful GitHub Actions run: **42017725845** on commit `aefb5760815918790895d2c0ec90342f9ee59f66`.
+Successful GitHub Actions verification run: **42017725845** on commit `aefb5760815918790895d2c0ec90342f9ee59f66`.
 
 | Check | Result |
 | --- | --- |
