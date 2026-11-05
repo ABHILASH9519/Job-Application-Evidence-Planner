@@ -86,7 +86,7 @@ describe("application workspace UI", () => {
     const firstRequest = new Promise<{ applications: Awaited<ReturnType<typeof repository.listApplications>>; evidence: Awaited<ReturnType<typeof repository.listEvidence>> }>((_resolve, reject) => {
       rejectFirstRequest = reject;
     });
-    vi.spyOn(repository, "searchRecords")
+    const searchSpy = vi.spyOn(repository, "searchRecords")
       .mockImplementationOnce(() => firstRequest)
       .mockResolvedValue({ applications: [], evidence: [] });
 
@@ -105,8 +105,10 @@ describe("application workspace UI", () => {
       const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
       setter?.call(search, "newer query");
       search?.dispatchEvent(new Event("input", { bubbles: true }));
+      search?.dispatchEvent(new Event("change", { bubbles: true }));
       await new Promise((resolve) => setTimeout(resolve, 150));
     });
+    expect(searchSpy).toHaveBeenCalledTimes(2);
 
     await act(async () => {
       rejectFirstRequest(new Error("Superseded request failed"));
