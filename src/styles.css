@@ -220,3 +220,8 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
 .follow-up-actions .follow-up-done { color: #8bd6b3; border-color: #315646; }
 .follow-up-actions .text-button:hover { background: #242b3a; }
 @media (max-width: 650px) { .follow-up-actions { width: 100%; justify-content: flex-start; margin-left: 42px; } }
+
+.stale-panel { margin-top: 13px; border-color: #3a3449; }
+.stale-panel .activity-icon { color: #d9bd83; background: #3b3428; }
+.stale-panel .activity-copy span { color: #a69a82; }
+.stale-panel .text-button { white-space: nowrap; }
