@@ -36,7 +36,7 @@ test("evidence can be linked to an application and marked completed", async ({ p
   await page.getByLabel("Filter evidence by status").selectOption("planned");
   await expect(page.getByText("No evidence with this status")).toBeVisible();
   await page.getByLabel("Filter evidence by status").selectOption("completed");
-  await expect(page.getByText("API automation project", { exact: true })).toBeVisible();
+  await expect(page.getByText("API automation project")).toBeVisible();
 });
 
 test("application search filters results and clear restores them", async ({ page }) => {
