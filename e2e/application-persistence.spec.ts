@@ -107,3 +107,18 @@ test("deleting an application preserves its evidence as unlinked", async ({ page
   await expect(page.getByText("Fault-tolerant worker project")).toBeVisible();
   await expect(page.getByRole("article").getByText("General evidence")).toBeVisible();
 });
+
+test("workspace navigation is usable with the keyboard", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: /evidence\/planner/i })).toBeFocused();
+
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: /overview/i })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: /applications/i })).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByRole("button", { name: /applications/i })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { name: /applications/i })).toBeVisible();
+});
