@@ -90,6 +90,13 @@ export async function saveApplication(input: ApplicationInput, id?: string): Pro
   return record.id;
 }
 
+export async function updateApplicationStage(id: string, stage: ApplicationStage): Promise<void> {
+  if (!APPLICATION_STAGES.includes(stage)) throw new Error("Choose a supported application stage.");
+  const application = await db.applications.get(id);
+  if (!application) throw new Error("Application not found.");
+  await db.applications.put({ ...application, stage, updatedAt: timestamp() });
+}
+
 export async function updateFollowUpDate(id: string, followUpAt: string): Promise<void> {
   const normalizedDate = optionalDate(followUpAt, "Follow-up date");
   const application = await db.applications.get(id);
