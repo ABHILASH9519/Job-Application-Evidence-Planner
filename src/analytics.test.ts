@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getApplicationStageMetrics, getEvidenceReadinessMetrics } from "./analytics";
+import { getApplicationStageMetrics, getEvidenceReadinessMetrics, getStaleApplications } from "./analytics";
 import type { ApplicationRecord, EvidenceRecord } from "./types";
 
 const application = (id: string, stage: ApplicationRecord["stage"]): ApplicationRecord => ({
@@ -50,5 +50,26 @@ describe("dashboard analytics", () => {
       planned: 0, inProgress: 0, completed: 0,
       completionPercentage: 0, linked: 0, linkedPercentage: 0,
     });
+  });
+});
+
+describe("stale application insights", () => {
+  it("returns active applications older than the threshold, oldest first", () => {
+    const records = [
+      { ...application("recent", "applied"), updatedAt: "2026-11-01T10:00:00.000Z" },
+      { ...application("stale-20", "interview"), updatedAt: "2026-10-16T10:00:00.000Z" },
+      { ...application("stale-30", "saved"), updatedAt: "2026-10-06T10:00:00.000Z" },
+      { ...application("offer", "offer"), updatedAt: "2026-10-01T10:00:00.000Z" },
+      { ...application("rejected", "rejected"), updatedAt: "2026-10-01T10:00:00.000Z" },
+    ];
+    const stale = getStaleApplications(records, "2026-11-05");
+    expect(stale.map((item) => item.application.id)).toEqual(["stale-30", "stale-20"]);
+    expect(stale.map((item) => item.daysSinceUpdate)).toEqual([30, 20]);
+  });
+
+  it("excludes applications at the threshold and validates threshold settings", () => {
+    const exactlyFourteenDays = { ...application("boundary", "applied"), updatedAt: "2026-10-22T10:00:00.000Z" };
+    expect(getStaleApplications([exactlyFourteenDays], "2026-11-05")).toHaveLength(0);
+    expect(() => getStaleApplications([], "2026-11-05", 0)).toThrow("positive whole number");
   });
 });
