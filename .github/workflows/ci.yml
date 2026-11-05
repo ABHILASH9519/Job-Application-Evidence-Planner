@@ -13,22 +13,32 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Preserve generated npm lockfile for review
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-lockfile
-          path: package-lock.json
-          if-no-files-found: error
-          retention-days: 1
+      - name: Generate reproducible dependency lockfile
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit lockfile to the same-repository PR branch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git add package-lock.json
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "build: add npm dependency lockfile"
+            git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
+          fi
+      - name: Install dependencies from lockfile
+        run: npm ci
       - name: Audit dependency vulnerabilities
         run: npm audit --audit-level=moderate
       - name: Run unit and integration tests
