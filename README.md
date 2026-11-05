@@ -13,6 +13,7 @@ A privacy-first workspace for organizing job applications and mapping role requi
 - Search and review application and evidence records.
 - Filter opportunities by pipeline stage and evidence by readiness status.
 - Export a structured JSON report and merge backups without deleting unrelated local records.
+- Export application and evidence rows as spreadsheet-compatible CSV with formula-injection mitigation.
 - Download a spreadsheet-friendly CSV export with linked-application context and formula-injection mitigation.
 
 ## Privacy and data handling
@@ -25,9 +26,9 @@ The current PR branch contains the Day 1 application, repository hardening, back
 
 - `npm ci` using the committed `package-lock.json`.
 - `npm audit --audit-level=moderate` with zero reported vulnerabilities.
-- 23 unit/integration tests across 3 test files.
+- 31 unit/integration tests across 4 test files.
 - TypeScript checks and the Vite production build.
-- 8 Playwright end-to-end tests on Chromium.
+- 10 Playwright end-to-end tests on Chromium (including CSV download, keyboard navigation, and mobile viewport checks).
 
 PR #2 is still open and has not been merged. The [existing production deployment](https://job-application-evidence-planner.vercel.app/) may still serve an earlier release; do not treat it as the deployment of the current PR head until a fresh deployment is verified.
 
@@ -38,6 +39,7 @@ PR #2 is still open and has not been merged. The [existing production deployment
 | Search and application-stage filtering | Implemented; tested |
 | Evidence readiness-status filtering | Implemented; browser test passes |
 | JSON export/import and backup merge validation | Implemented; repository and browser tests pass |
+| CSV export for spreadsheet analysis | Implemented; serialization and download tests added |
 | IndexedDB persistence and linked-evidence preservation | Implemented; browser tests pass |
 | Reproducible dependency installation | `package-lock.json` committed; CI uses `npm ci` |
 | Dependency audit, 23 unit/integration tests, production build | Passed in GitHub Actions run `42017725845` |
