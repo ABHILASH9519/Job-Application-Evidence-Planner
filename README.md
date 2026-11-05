@@ -28,7 +28,7 @@ The current PR branch contains the Day 1 application, repository hardening, back
 - TypeScript checks and the Vite production build.
 - 8 Playwright end-to-end tests on Chromium.
 
-PR #2 is still open and has not been merged. The existing production URL below may still serve an earlier release; do not treat it as the deployment of the current PR head until a fresh deployment is verified.
+PR #2 is still open and has not been merged. The [existing production deployment](https://job-application-evidence-planner.vercel.app/) may still serve an earlier release; do not treat it as the deployment of the current PR head until a fresh deployment is verified.
 
 | Area | Current status |
 | --- | --- |
