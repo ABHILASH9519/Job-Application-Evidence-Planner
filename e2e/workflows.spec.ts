@@ -127,3 +127,38 @@ test("overview summarizes pipeline stages and evidence readiness", async ({ page
   await expect(page.getByRole("progressbar", { name: "Evidence completion" })).toHaveAttribute("aria-valuenow", "50");
   await expect(page.getByText("0 of 2 evidence items linked to an application (0%).")).toBeVisible();
 });
+test("follow-up reminders can be snoozed by three days", async ({ page }) => {
+  await page.goto("/");
+  const today = new Date();
+  const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Reminder Labs");
+  await page.getByLabel("Role title").fill("Platform Engineer");
+  await page.getByLabel("Follow-up date").fill(date);
+  await page.getByRole("button", { name: "Save application" }).click();
+  await expect(page.getByRole("status")).toContainText("Application saved locally.");
+
+  await page.getByRole("button", { name: /overview/i }).click();
+  await expect(page.getByRole("heading", { name: "Follow-up reminders" })).toBeVisible();
+  await page.getByRole("button", { name: "+3 days" }).click();
+  const future = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3);
+  const expected = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, "0")}-${String(future.getDate()).padStart(2, "0")}`;
+  await expect(page.getByRole("status")).toContainText(`Follow-up moved to ${expected}.`);
+  await page.getByRole("button", { name: /applications/i }).click();
+  await expect(page.getByText(`Follow up · ${expected}`)).toBeVisible();
+});
+
+test("follow-up reminders can be marked complete", async ({ page }) => {
+  await page.goto("/");
+  const today = new Date();
+  const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Completion Labs");
+  await page.getByLabel("Role title").fill("SRE");
+  await page.getByLabel("Follow-up date").fill(date);
+  await page.getByRole("button", { name: "Save application" }).click();
+  await page.getByRole("button", { name: /overview/i }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByRole("status")).toContainText("Follow-up marked complete.");
+  await expect(page.getByText("No follow-ups due today. Add a follow-up date to any tracked role.")).toBeVisible();
+});
