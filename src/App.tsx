@@ -11,6 +11,7 @@ import {
   searchRecords,
   updateEvidenceStatus,
   updateFollowUpDate,
+  updateApplicationStage,
   type ApplicationInput,
   type EvidenceInput,
 } from "./repository";
@@ -202,6 +203,16 @@ export default function App() {
     }
   }
 
+  async function changeApplicationStage(id: string, stage: ApplicationStage) {
+    try {
+      await updateApplicationStage(id, stage);
+      await refresh();
+      setNotice("Application stage updated.");
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not update application stage.");
+    }
+  }
   async function adjustFollowUp(item: ApplicationRecord, days?: number) {
     try {
       const nextDate = days === undefined ? "" : addCalendarDays(localDate(), days);
@@ -376,7 +387,7 @@ export default function App() {
               <SearchBox value={query} onChange={setQuery} />
               <label className="filter-label">Filter by stage<select value={stageFilter} onChange={(e) => setStageFilter(e.target.value as "all" | ApplicationStage)}><option value="all">All stages</option>{APPLICATION_STAGES.map((stage) => <option key={stage} value={stage}>{formatStage(stage)}</option>)}</select></label>
               <label className="filter-label">Sort applications by<select aria-label="Sort applications by" value={applicationSort} onChange={(e) => setApplicationSort(e.target.value as "updated" | "company" | "follow_up" | "stage")}><option value="updated">Recently updated</option><option value="company">Company A–Z</option><option value="follow_up">Next follow-up</option><option value="stage">Pipeline stage</option></select></label>
-              {visibleApplications.length === 0 ? <div className="empty-state compact"><h3>{allApplications.length === 0 ? "No applications yet" : query.trim() ? "No matching applications" : "No roles in this stage"}</h3><p>{allApplications.length === 0 ? "Your saved roles will appear here." : query.trim() ? "Try a different search term or clear the search." : "Choose another stage or clear the filter."}</p></div> : <div className="record-list">{visibleApplications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div><div className="application-meta"><span className={`stage-pill stage-${item.stage ?? "saved"}`}>{formatStage(item.stage ?? "saved")}</span>{item.followUpAt && <span className={item.followUpAt < localDate() ? "follow-up overdue" : "follow-up"}>{item.followUpAt < localDate() ? "Overdue · " : "Follow up · "}{item.followUpAt}</span>}</div><div className="coverage-row"><span>Evidence readiness</span><strong>{allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length}/{allEvidence.filter((e) => e.applicationId === item.id).length} ready</strong><div className="coverage-track"><i style={{ width: `${allEvidence.filter((e) => e.applicationId === item.id).length ? (allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length / allEvidence.filter((e) => e.applicationId === item.id).length) * 100 : 0}%` }} /></div></div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
+              {visibleApplications.length === 0 ? <div className="empty-state compact"><h3>{allApplications.length === 0 ? "No applications yet" : query.trim() ? "No matching applications" : "No roles in this stage"}</h3><p>{allApplications.length === 0 ? "Your saved roles will appear here." : query.trim() ? "Try a different search term or clear the search." : "Choose another stage or clear the filter."}</p></div> : <div className="record-list">{visibleApplications.map((item) => <article className="record-card" key={item.id}><div className="record-top"><div className="company-avatar">{item.company.slice(0, 1).toUpperCase()}</div><div className="record-title"><strong>{item.role}</strong><span>{item.company}</span></div><div className="record-actions"><button aria-label="Edit application" onClick={() => editApplication(item)}>Edit</button><button aria-label="Delete application" onClick={() => void removeApplication(item.id)}>Delete</button></div></div><div className="application-meta"><span className={`stage-pill stage-${item.stage ?? "saved"}`}>{formatStage(item.stage ?? "saved")}</span><select className="stage-quick-select" aria-label={`Change stage for ${item.company}`} value={item.stage ?? "saved"} onChange={(event) => void changeApplicationStage(item.id, event.target.value as ApplicationStage)}>{APPLICATION_STAGES.map((stage) => <option key={stage} value={stage}>{formatStage(stage)}</option>)}</select>{item.followUpAt && <span className={item.followUpAt < localDate() ? "follow-up overdue" : "follow-up"}>{item.followUpAt < localDate() ? "Overdue · " : "Follow up · "}{item.followUpAt}</span>}</div><div className="coverage-row"><span>Evidence readiness</span><strong>{allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length}/{allEvidence.filter((e) => e.applicationId === item.id).length} ready</strong><div className="coverage-track"><i style={{ width: `${allEvidence.filter((e) => e.applicationId === item.id).length ? (allEvidence.filter((e) => e.applicationId === item.id && e.status === "completed").length / allEvidence.filter((e) => e.applicationId === item.id).length) * 100 : 0}%` }} /></div></div>{item.nextStep && <div className="next-step"><span>↳ Next</span> {item.nextStep}</div>}{item.jobUrl && <a className="record-link" href={item.jobUrl} target="_blank" rel="noreferrer">Open job posting ↗</a>}</article>)}</div>}
             </section>
           </div>}
 
