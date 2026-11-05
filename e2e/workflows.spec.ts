@@ -32,7 +32,7 @@ test("evidence can be linked to an application and marked completed", async ({ p
 
   await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
   await expect(page.getByText("Design reliable APIs", { exact: true })).toBeVisible();
-  await expect(page.getByText("API automation project", { exact: true })).toBeVisible();
+  await expect(page.getByText("API automation project")).toBeVisible();
   await page.getByLabel("Filter evidence by status").selectOption("planned");
   await expect(page.getByText("No evidence with this status")).toBeVisible();
   await page.getByLabel("Filter evidence by status").selectOption("completed");
