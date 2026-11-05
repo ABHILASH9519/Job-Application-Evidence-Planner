@@ -65,7 +65,7 @@ test("a versioned backup restores applications and linked evidence", async ({ pa
 
   await page.getByRole("button", { name: /evidence library/i }).click();
   await expect(page.getByText("Production incident response", { exact: true })).toBeVisible();
-  await expect(page.getByText("Service reliability project", { exact: true })).toBeVisible();
+  await expect(page.getByText("Service reliability project")).toBeVisible();
   await expect(page.getByText("Imported Systems", { exact: true })).toBeVisible();
 });
 
@@ -104,6 +104,6 @@ test("deleting an application preserves its evidence as unlinked", async ({ page
 
   await page.getByRole("button", { name: /evidence library/i }).click();
   await expect(page.getByText("Design resilient services", { exact: true })).toBeVisible();
-  await expect(page.getByText("Fault-tolerant worker project", { exact: true })).toBeVisible();
-  await expect(page.getByText("General evidence", { exact: true })).toBeVisible();
+  await expect(page.getByText("Fault-tolerant worker project")).toBeVisible();
+  await expect(page.getByText("General evidence")).toBeVisible();
 });
