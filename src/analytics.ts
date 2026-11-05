@@ -1,4 +1,5 @@
 import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
+import { daysBetweenDates } from "./dates";
 
 export interface StageMetric {
   stage: ApplicationStage;
@@ -41,4 +42,27 @@ export function getEvidenceReadinessMetrics(evidence: EvidenceRecord[]): Evidenc
     linked,
     linkedPercentage: total === 0 ? 0 : Math.round((linked / total) * 100),
   };
+}
+
+export interface StaleApplicationMetric {
+  application: ApplicationRecord;
+  daysSinceUpdate: number;
+}
+
+export function getStaleApplications(
+  applications: ApplicationRecord[],
+  today: string,
+  thresholdDays = 14,
+): StaleApplicationMetric[] {
+  if (!Number.isInteger(thresholdDays) || thresholdDays < 1) {
+    throw new Error("The stale threshold must be a positive whole number of days.");
+  }
+  return applications
+    .filter((application) => application.stage !== "offer" && application.stage !== "rejected")
+    .map((application) => ({
+      application,
+      daysSinceUpdate: daysBetweenDates(application.updatedAt.slice(0, 10), today),
+    }))
+    .filter((item) => item.daysSinceUpdate > thresholdDays)
+    .sort((a, b) => b.daysSinceUpdate - a.daysSinceUpdate);
 }
