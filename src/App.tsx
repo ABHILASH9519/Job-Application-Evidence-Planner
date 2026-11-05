@@ -68,9 +68,10 @@ export default function App() {
 
   useEffect(() => {
     let mounted = true;
+    const initialRequestId = refreshSequence.current;
     Promise.all([listApplications(), listEvidence()])
       .then(([apps, items]) => {
-        if (mounted) {
+        if (mounted && initialRequestId === refreshSequence.current) {
           setApplications(apps);
           setAllApplications(apps);
           setAllEvidence(items);
@@ -87,6 +88,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Invalidate in-flight work as soon as the query changes, not after the debounce.
+    refreshSequence.current += 1;
     const timer = window.setTimeout(() => {
       void refresh(query).catch(() => setError("Could not refresh local records. Try reloading the workspace."));
     }, 120);
