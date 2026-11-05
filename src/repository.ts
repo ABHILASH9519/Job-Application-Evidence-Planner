@@ -90,6 +90,13 @@ export async function saveApplication(input: ApplicationInput, id?: string): Pro
   return record.id;
 }
 
+export async function updateFollowUpDate(id: string, followUpAt: string): Promise<void> {
+  const normalizedDate = optionalDate(followUpAt, "Follow-up date");
+  const application = await db.applications.get(id);
+  if (!application) throw new Error("Application not found.");
+  await db.applications.put({ ...application, followUpAt: normalizedDate, updatedAt: timestamp() });
+}
+
 export async function deleteApplication(id: string): Promise<void> {
   await db.transaction("rw", db.applications, db.evidence, async () => {
     const linked = await db.evidence.where("applicationId").equals(id).toArray();
