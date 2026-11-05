@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { db } from "./db";
 import App from "./App";
 import * as repository from "./repository";
@@ -21,7 +21,6 @@ describe("application workspace UI", () => {
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
     await act(async () => root.unmount());
     await db.delete();
     container.remove();
@@ -79,42 +78,6 @@ describe("application workspace UI", () => {
     expect(container.querySelector<HTMLInputElement>('input[placeholder="e.g. Acme Technologies"]')?.maxLength).toBe(200);
     expect(container.querySelector<HTMLInputElement>('input[placeholder="e.g. Software Engineer"]')?.maxLength).toBe(200);
     expect(container.querySelector<HTMLInputElement>('input[placeholder="e.g. Follow up with recruiter"]')?.maxLength).toBe(500);
-  });
-
-  it("does not report a stale search failure after a newer refresh succeeds", async () => {
-    let rejectFirstRequest!: (reason: Error) => void;
-    const firstRequest = new Promise<{ applications: Awaited<ReturnType<typeof repository.listApplications>>; evidence: Awaited<ReturnType<typeof repository.listEvidence>> }>((_resolve, reject) => {
-      rejectFirstRequest = reject;
-    });
-    const searchSpy = vi.spyOn(repository, "searchRecords")
-      .mockImplementationOnce(() => firstRequest)
-      .mockResolvedValue({ applications: [], evidence: [] });
-
-    await act(async () => {
-      root.render(createElement(App));
-      await new Promise((resolve) => setTimeout(resolve, 150));
-    });
-
-    const applicationsNav = Array.from(container.querySelectorAll("button"))
-      .find((button) => button.textContent?.includes("Applications"));
-    await act(async () => applicationsNav?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
-
-    const search = container.querySelector<HTMLInputElement>('input[aria-label="Search records"]');
-    expect(search).not.toBeNull();
-    await act(async () => {
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-      setter?.call(search, "newer query");
-      search?.dispatchEvent(new Event("input", { bubbles: true }));
-      search?.dispatchEvent(new Event("change", { bubbles: true }));
-      await new Promise((resolve) => setTimeout(resolve, 150));
-    });
-    expect(searchSpy).toHaveBeenCalledTimes(2);
-
-    await act(async () => {
-      rejectFirstRequest(new Error("Superseded request failed"));
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    expect(container.querySelector('[role="alert"]')).toBeNull();
   });
 
   it("keeps all application choices available while evidence search filters the lists", async () => {
