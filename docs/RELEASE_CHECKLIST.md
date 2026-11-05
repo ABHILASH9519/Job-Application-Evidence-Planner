@@ -1,43 +1,46 @@
-# Initial Release Checklist
+# Release Checklist
 
-This checklist distinguishes verified Day 1 functionality from outstanding repository and platform hardening. Items are checked only after the work has actually been completed and verified.
+This checklist separates current PR verification from the remaining production and cross-platform release steps.
 
 ## Implementation
-- [x] Application create, read, update, and delete flows work (repository tests and production browser walkthrough).
-- [x] Evidence create, read, update, and delete flows work (repository tests and production browser walkthrough).
-- [x] Evidence status transitions are validated.
-- [x] Application pipeline stages are validated and can be updated.
-- [x] Follow-up dates are saved and overdue dates are highlighted.
-- [x] Per-application evidence readiness reflects completed versus mapped evidence.
-- [x] Search works across the documented fields.
-- [x] JSON export preserves all required data; import/export and merge behavior were verified.
-- [x] Browser-local persistence survives reloads.
+- [x] Application create, read, update, and delete flows.
+- [x] Evidence create, read, update, and delete flows.
+- [x] Evidence status transitions and readiness-status filtering.
+- [x] Application pipeline stages and stage filtering.
+- [x] Follow-up dates and overdue reminders.
+- [x] Per-application evidence readiness.
+- [x] Search across application and evidence records.
+- [x] JSON export, versioned import, and merge behavior.
+- [x] Browser-local IndexedDB persistence.
+- [x] Preserve linked evidence when an application is deleted.
 
 ## Quality
-- [x] Automated data-layer and schema migration tests pass in GitHub Actions (14 tests across 3 files, run `41694236806` on commit `0ec4211446a600a57a13af274afe5fe43f9c303e`).
-- [x] Production build succeeds (`tsc -b` and `vite build`, GitHub Actions run `41694236806`).
-- [x] UI component and search-filter regression tests pass in jsdom (3 tests, GitHub Actions run `41694236806`).
-- [x] Production browser walkthrough passed on the latest recorded Vercel build, including the evidence-search regression and a 390px mobile viewport (Playwright, Chromium 156; manual/scripted walkthrough, not a committed CI suite).
-- [x] Source review confirms the initial app stores user records in IndexedDB and has no application API or analytics integration.
-- [x] `npm audit --audit-level=moderate` reports zero known vulnerabilities on GitHub Actions run `41694236806`.
-- [ ] Commit an npm lockfile and switch CI to `npm ci` for reproducible dependency installation.
-- [ ] Commit the Playwright end-to-end suite and run it in GitHub Actions.
-- [ ] Complete Firefox/Safari, real Android/iOS, keyboard-only, screen-reader, and formal accessibility checks.
+- [x] 23 unit/integration tests pass in GitHub Actions run `42017725845`.
+- [x] TypeScript checks and production build pass in GitHub Actions run `42017725845`.
+- [x] 8 Chromium Playwright end-to-end tests pass in GitHub Actions run `42017725845`.
+- [x] `npm audit --audit-level=moderate` reports zero vulnerabilities in GitHub Actions run `42017725845`.
+- [x] Import validation rejects unsupported schemas, duplicate IDs, unsafe URLs, oversized data, and dangling relationships.
+- [ ] Complete Firefox/WebKit (including Safari) browser coverage.
+- [ ] Complete real Android/iOS device testing.
+- [ ] Complete keyboard-only, screen-reader, and formal accessibility checks.
 
 ## Repository and delivery
-- [x] Application source is committed.
-- [ ] Dependency lockfile is committed; current CI still uses `npm install`.
-- [x] CI runs dependency installation, a blocking `npm audit --audit-level=moderate`, tests, and production build; run `41694236806` passed.
-- [x] README setup instructions match the actual scripts.
-- [x] Known limitations are documented (browser-local data, no cross-device sync or push notifications, manual backups).
-- [x] Production deployment is READY at https://job-application-evidence-planner.vercel.app/ (previously verified HTTP 200).
+- [x] Application source and documentation are committed.
+- [x] `package-lock.json` is committed.
+- [x] CI uses `npm ci`, dependency audit, unit/integration tests, production build, and Playwright Chromium E2E.
+- [x] README and test documentation reflect current scripts and verification results.
+- [ ] Merge PR #2 into `main` after review and explicit approval.
+- [ ] Verify a fresh production deployment from the merged commit.
+- [ ] Re-run the production smoke test against that exact deployment.
 
 ## Backup and restore
-- [x] Exported report from populated browser workspace and parsed the JSON.
-- [x] Imported the report into a fresh browser context and verified application/evidence records and their association.
-- [x] Imported into a non-empty workspace and verified unrelated local records remain intact.
-- [x] Automated tests verify malformed files, unsafe URLs, duplicate IDs, and dangling links are rejected.
+- [x] Exported report format is documented and versioned.
+- [x] Browser test imports a populated backup and verifies the application/evidence relationship.
+- [x] Repository tests verify atomic import behavior when linked records are invalid.
+- [x] Repository tests verify merge does not delete unrelated local records.
+- [x] Browser test rejects unsupported schema versions without creating records.
+- [x] Browser test confirms evidence is preserved and unlinked when its application is deleted.
 
 ## Completion rule
 
-The Day 1 functional scope is implemented and its recorded automated and browser checks passed. Do not mark the remaining hardening items complete until the lockfile, committed browser suite, and cross-platform/accessibility checks have actually been completed.
+The current PR branch has passed its automated CI gate (23 unit/integration tests, production build, dependency audit, and 8 Chromium E2E tests). Do not describe the project as fully released until PR #2 is reviewed and merged, the merged commit is deployed, and the production deployment is smoke-tested. Cross-browser and accessibility items remain outstanding.

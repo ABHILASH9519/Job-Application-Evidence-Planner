@@ -5,13 +5,19 @@ A privacy-first workspace for organizing job applications and mapping role requi
 ## Current capabilities
 
 - Track applications by company, role, job URL, application date, pipeline stage, follow-up date, next step, and notes.
-- Move opportunities through Saved, Applied, Assessment, Interview, Offer, and Rejected stages.
-- See overdue follow-ups and per-application completed-evidence readiness.
+- Move opportunities through Saved, Applied, Assessment, Interview, Offer, and Rejected stages, including quick stage changes from each application card.
+- See overdue follow-ups, application pipeline distribution, and evidence completion/linkage analytics.
+- Snooze due follow-ups by three or seven days, or mark a reminder complete without deleting the application.
+- Surface active applications that have not been updated for more than 14 days.
 - Capture role requirements and connect each one to a project, experience, or evidence link.
 - Record the applicant's contribution and relevant limitations or context.
 - Track evidence progress as planned, in progress, or completed.
 - Search and review application and evidence records.
+- Filter opportunities by pipeline stage and evidence by readiness status.
+- Sort applications by update time, company, follow-up date, or pipeline stage; sort evidence by update time, requirement, or status.
 - Export a structured JSON report and merge backups without deleting unrelated local records.
+- Export application and evidence rows as spreadsheet-compatible CSV with formula-injection mitigation.
+- Download a spreadsheet-friendly CSV export with linked-application context and formula-injection mitigation.
 
 ## Privacy and data handling
 
@@ -19,27 +25,40 @@ Application and evidence records are stored in the current browser's IndexedDB. 
 
 ## Project status
 
-The Day 1 application is implemented and deployed at https://job-application-evidence-planner.vercel.app/. The production browser walkthrough passed on the latest Vercel build for application/evidence CRUD, pipeline stages, overdue follow-ups, evidence readiness, JSON export/import, local persistence, backup merge, deletion confirmation, privacy request checks, mobile overflow, and the evidence-search/application-selector regression.
+The current PR branch contains the Day 1 application, repository hardening, backup validation, evidence status filtering, CSV export, sorting, cross-browser Playwright coverage, and dashboard analytics. The baseline implementation passed GitHub Actions run **42017725845**; subsequent changes are being re-verified on the current PR head.
 
-The latest verified GitHub Actions run is **41694236806** on commit **0ec4211446a600a57a13af274afe5fe43f9c303e** (success). It passed 14 tests across 3 files, TypeScript checks, the Vite production build, and `npm audit --audit-level=moderate` with zero known vulnerabilities.
+- `npm ci`, moderate-level dependency audit, unit/integration tests, and the production build passed on the baseline CI run.
+- The latest three-browser run passed dependency installation, audit, unit/integration tests, and production build, but exposed stale Playwright selectors in keyboard-navigation and JSON-export tests.
+- Those selectors have been corrected; dashboard analytics and focused unit/E2E tests have since been added. The latest CI result is pending.
 
-| Area | Verified status |
+PR #2 is still open and has not been merged. The [existing production deployment](https://job-application-evidence-planner.vercel.app/) may still serve an earlier release; do not treat it as the deployment of the current PR head until a fresh deployment is verified.
+
+| Area | Current status |
 | --- | --- |
-| Application/evidence CRUD | Passed in repository tests and production browser walkthrough |
-| Pipeline stages and follow-up dates | Passed in repository tests and production browser walkthrough |
-| Evidence readiness | Passed in production browser walkthrough |
-| Backup export/import/merge | Passed in repository tests and production browser walkthrough |
-| Browser-local persistence | Passed in production browser walkthrough |
-| Production build and dependency audit | Passed in GitHub Actions run `41694236806` |
-| Production deployment | Vercel deployment READY; public URL returned HTTP 200 |
+| Application/evidence CRUD and pipeline stages | Implemented; unit and browser tests pass |
+| Follow-up reminders and evidence readiness | Implemented; snooze/completion actions and date validation tested |
+| Stale application insights | Implemented; active-stage filtering and age thresholds tested |
+| Quick pipeline stage changes | Implemented; repository and browser regression tests added |
+| Search and application-stage filtering | Implemented; tested |
+| Application and evidence sorting | Implemented; sorting E2E coverage added |
+| Pipeline distribution and evidence readiness analytics | Implemented; unit and browser regression tests added |
+| Evidence readiness-status filtering | Implemented; browser test passes |
+| JSON export/import and backup merge validation | Implemented; repository and browser tests pass |
+| CSV export for spreadsheet analysis | Implemented; serialization and download tests added |
+| IndexedDB persistence and linked-evidence preservation | Implemented; browser tests pass |
+| Reproducible dependency installation | `package-lock.json` committed; CI uses `npm ci` |
+| Baseline dependency audit, unit/integration tests, production build | Passed in GitHub Actions run `42017725845`; current head re-verification pending |
+| Three-browser Playwright suite | Current head verification pending after fixing stale test selectors |
+| Current PR merge and production deployment | Pending; PR #2 has not been merged |
 
-**Repository hardening still pending:** there is no committed `package-lock.json`, so CI currently uses `npm install` and transitive dependency resolution is not fully reproducible. A permanent Playwright end-to-end suite and cross-browser/accessibility/device testing are also not yet part of CI. These are release-hardening tasks, not claims of completed verification.
-
+**Remaining release hardening:** Firefox/WebKit coverage, real Android/iOS device checks, keyboard-only and screen-reader testing, and a formal accessibility audit. The application remains browser-local: records do not sync across devices, and there are no email, push, or background reminders. Export JSON backups periodically because clearing browser site data can remove IndexedDB records.
 ## Project documentation
 
 - [Product requirements](docs/PRODUCT_SPEC.md)
 - [Implemented architecture](docs/ARCHITECTURE.md)
 - [Data model](docs/DATA_MODEL.md)
+- [Backup format and compatibility](docs/BACKUP_FORMAT.md)
+- [CSV export format and safety](docs/CSV_EXPORT.md)
 - [Test plan and verification report](docs/TEST_PLAN.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Contribution guidelines](CONTRIBUTING.md)
@@ -49,15 +68,17 @@ The latest verified GitHub Actions run is **41694236806** on commit **0ec4211446
 Requirements: Node.js 20 or newer and npm.
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Run automated tests and the production build:
+Run automated tests, the production build, browser tests, and the dependency audit:
 
 ```bash
 npm test
 npm run build
+npm run test:e2e
+npm audit --audit-level=moderate
 ```
 
 Follow-up reminders are displayed when the workspace is opened; there are no email reminders, push notifications, or background notifications. Browser site-data clearing can remove locally stored records, so export JSON backups periodically.

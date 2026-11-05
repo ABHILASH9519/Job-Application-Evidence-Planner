@@ -1,0 +1,180 @@
+import { expect, test } from "@playwright/test";
+
+test("application form validates required fields and saves a pipeline stage", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+
+  await page.getByLabel("Company name").fill("Contoso Labs");
+  await page.getByLabel("Role title").fill("Cloud Engineer");
+  await page.getByLabel("Pipeline stage").selectOption("interview");
+  await page.getByRole("button", { name: "Save application" }).click();
+
+  await expect(page.getByRole("status")).toContainText("Application saved locally.");
+  await page.getByRole("button", { name: /applications/i }).click();
+  await expect(page.getByText("Contoso Labs", { exact: true })).toBeVisible();
+  await expect(page.getByRole("article").getByText("Interview", { exact: true })).toBeVisible();
+});
+
+test("evidence can be linked to an application and marked completed", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Fabrikam");
+  await page.getByLabel("Role title").fill("Backend Engineer");
+  await page.getByRole("button", { name: "Save application" }).click();
+
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  await page.getByLabel("Related application").selectOption({ label: "Fabrikam — Backend Engineer" });
+  await page.getByLabel("Role requirement").fill("Design reliable APIs");
+  await page.getByLabel("Evidence title").fill("API automation project");
+  await page.getByLabel("Your contribution").fill("Built the API regression suite");
+  await page.locator(".form-card").getByLabel("Status").selectOption("completed");
+  await page.getByRole("button", { name: "Save evidence" }).click();
+
+  await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
+  await expect(page.getByText("Design reliable APIs", { exact: true })).toBeVisible();
+  await expect(page.getByText("API automation project")).toBeVisible();
+  await page.getByLabel("Filter evidence by status").selectOption("planned");
+  await expect(page.getByText("No evidence with this status")).toBeVisible();
+  await page.getByLabel("Filter evidence by status").selectOption("completed");
+  await expect(page.getByText("API automation project")).toBeVisible();
+});
+
+test("application search filters results and clear restores them", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Northstar");
+  await page.getByLabel("Role title").fill("Platform Engineer");
+  await page.getByRole("button", { name: "Save application" }).click();
+
+  await page.getByRole("button", { name: /applications/i }).click();
+  const search = page.getByRole("textbox", { name: "Search records" });
+  await search.fill("no-such-company");
+  await expect(page.getByText("No matching applications")).toBeVisible();
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await expect(page.getByText("Northstar", { exact: true })).toBeVisible();
+});
+
+test("export action downloads a JSON report", async ({ page }) => {
+  await page.goto("/");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "↓ Export JSON" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("job-application-evidence-report.json");
+  await expect(page.getByRole("status")).toContainText("Your JSON report has been exported.");
+});
+
+test("applications can be sorted by company name", async ({ page }) => {
+  await page.goto("/");
+  for (const company of ["Zenith Systems", "Atlas Cloud"]) {
+    await page.getByRole("button", { name: /add application/i }).click();
+    await page.getByLabel("Company name").fill(company);
+    await page.getByLabel("Role title").fill("Software Engineer");
+    await page.getByRole("button", { name: "Save application" }).click();
+    await expect(page.getByRole("status")).toContainText("Application saved locally.");
+  }
+
+  await page.getByRole("button", { name: /applications/i }).click();
+  await page.getByLabel("Sort applications by").selectOption("company");
+  const companies = await page.locator(".record-card .record-title span").allTextContents();
+  expect(companies.slice(0, 2)).toEqual(["Atlas Cloud", "Zenith Systems"]);
+});
+
+test("evidence can be sorted alphabetically by requirement", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  for (const requirement of ["Zero-downtime deployments", "API reliability"]) {
+    await page.getByLabel("Role requirement").fill(requirement);
+    await page.getByLabel("Evidence title").fill("Supporting project");
+    await page.getByRole("button", { name: "Save evidence" }).click();
+    await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
+  }
+
+  await page.getByLabel("Sort evidence by").selectOption("requirement");
+  const requirements = await page.locator(".record-card .record-title strong").allTextContents();
+  expect(requirements.slice(0, 2)).toEqual(["API reliability", "Zero-downtime deployments"]);
+});
+
+test("overview summarizes pipeline stages and evidence readiness", async ({ page }) => {
+  await page.goto("/");
+  for (const item of [
+    { company: "Pipeline Labs", role: "SRE", stage: "interview" },
+    { company: "Applied Systems", role: "Cloud Engineer", stage: "applied" },
+  ]) {
+    await page.getByRole("button", { name: /add application/i }).click();
+    await page.getByLabel("Company name").fill(item.company);
+    await page.getByLabel("Role title").fill(item.role);
+    await page.getByLabel("Pipeline stage").selectOption(item.stage);
+    await page.getByRole("button", { name: "Save application" }).click();
+    await expect(page.getByRole("status")).toContainText("Application saved locally.");
+  }
+
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  for (const item of [
+    { requirement: "Reliable delivery", title: "Deployment pipeline", status: "completed" },
+    { requirement: "Cloud monitoring", title: "Observability project", status: "planned" },
+  ]) {
+    await page.getByLabel("Role requirement").fill(item.requirement);
+    await page.getByLabel("Evidence title").fill(item.title);
+    await page.locator(".form-card").getByLabel("Status").selectOption(item.status);
+    await page.getByRole("button", { name: "Save evidence" }).click();
+    await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
+  }
+
+  await page.getByRole("button", { name: /overview/i }).click();
+  await expect(page.getByRole("heading", { name: "Application pipeline" })).toBeVisible();
+  await expect(page.getByRole("progressbar", { name: "Interview" })).toHaveAttribute("aria-valuenow", "1");
+  await expect(page.getByRole("progressbar", { name: "Applied" })).toHaveAttribute("aria-valuenow", "1");
+  await expect(page.getByRole("progressbar", { name: "Evidence completion" })).toHaveAttribute("aria-valuenow", "50");
+  await expect(page.getByText("0 of 2 evidence items linked to an application (0%).")).toBeVisible();
+});
+test("follow-up reminders can be snoozed by three days", async ({ page }) => {
+  await page.goto("/");
+  const today = new Date();
+  const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Reminder Labs");
+  await page.getByLabel("Role title").fill("Platform Engineer");
+  await page.getByLabel("Follow-up date").fill(date);
+  await page.getByRole("button", { name: "Save application" }).click();
+  await expect(page.getByRole("status")).toContainText("Application saved locally.");
+
+  await page.getByRole("button", { name: /overview/i }).click();
+  await expect(page.getByRole("heading", { name: "Follow-up reminders" })).toBeVisible();
+  await page.getByRole("button", { name: "+3 days" }).click();
+  const future = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3);
+  const expected = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, "0")}-${String(future.getDate()).padStart(2, "0")}`;
+  await expect(page.getByRole("status")).toContainText(`Follow-up moved to ${expected}.`);
+  await page.getByRole("button", { name: /applications/i }).click();
+  await expect(page.getByText(`Follow up · ${expected}`)).toBeVisible();
+});
+
+test("follow-up reminders can be marked complete", async ({ page }) => {
+  await page.goto("/");
+  const today = new Date();
+  const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Completion Labs");
+  await page.getByLabel("Role title").fill("SRE");
+  await page.getByLabel("Follow-up date").fill(date);
+  await page.getByRole("button", { name: "Save application" }).click();
+  await page.getByRole("button", { name: /overview/i }).click();
+  await page.getByRole("button", { name: "Done" }).click();
+  await expect(page.getByRole("status")).toContainText("Follow-up marked complete.");
+  await expect(page.getByText("No follow-ups due today. Add a follow-up date to any tracked role.")).toBeVisible();
+});
+test("overview explains when no stale applications need attention", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Needs a check-in" })).toBeVisible();
+  await expect(page.getByText("No inactive applications need attention right now.")).toBeVisible();
+});
+test("application pipeline stage can be changed from its card", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("Stage Shortcut Co");
+  await page.getByLabel("Role title").fill("Cloud Engineer");
+  await page.getByRole("button", { name: "Save application" }).click();
+  await page.getByRole("button", { name: /applications/i }).click();
+  await page.getByLabel("Change stage for Stage Shortcut Co").selectOption("interview");
+  await expect(page.getByRole("status")).toContainText("Application stage updated.");
+  await expect(page.locator(".record-card .stage-interview")).toContainText("Interview");
+});
