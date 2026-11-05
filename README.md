@@ -6,12 +6,13 @@ A privacy-first workspace for organizing job applications and mapping role requi
 
 - Track applications by company, role, job URL, application date, pipeline stage, follow-up date, next step, and notes.
 - Move opportunities through Saved, Applied, Assessment, Interview, Offer, and Rejected stages.
-- See overdue follow-ups and per-application completed-evidence readiness.
+- See overdue follow-ups, application pipeline distribution, and evidence completion/linkage analytics.
 - Capture role requirements and connect each one to a project, experience, or evidence link.
 - Record the applicant's contribution and relevant limitations or context.
 - Track evidence progress as planned, in progress, or completed.
 - Search and review application and evidence records.
-- Filter opportunities by pipeline stage and evidence by readiness status.\n- Sort applications by update time, company, follow-up date, or pipeline stage; sort evidence by update time, requirement, or status.
+- Filter opportunities by pipeline stage and evidence by readiness status.
+- Sort applications by update time, company, follow-up date, or pipeline stage; sort evidence by update time, requirement, or status.
 - Export a structured JSON report and merge backups without deleting unrelated local records.
 - Export application and evidence rows as spreadsheet-compatible CSV with formula-injection mitigation.
 - Download a spreadsheet-friendly CSV export with linked-application context and formula-injection mitigation.
@@ -22,13 +23,11 @@ Application and evidence records are stored in the current browser's IndexedDB. 
 
 ## Project status
 
-The current PR branch contains the Day 1 application, repository hardening, backup validation, evidence status filtering, and committed browser tests. The feature implementation was verified by successful GitHub Actions run **42017725845** on commit **aefb5760815918790895d2c0ec90342f9ee59f66**:
+The current PR branch contains the Day 1 application, repository hardening, backup validation, evidence status filtering, CSV export, sorting, cross-browser Playwright coverage, and dashboard analytics. The baseline implementation passed GitHub Actions run **42017725845**; subsequent changes are being re-verified on the current PR head.
 
-- `npm ci` using the committed `package-lock.json`.
-- `npm audit --audit-level=moderate` with zero reported vulnerabilities.
-- 31 unit/integration tests across 4 test files.
-- TypeScript checks and the Vite production build.
-- 10 Playwright end-to-end tests on Chromium (including CSV download, keyboard navigation, and mobile viewport checks).
+- `npm ci`, moderate-level dependency audit, unit/integration tests, and the production build passed on the baseline CI run.
+- The latest three-browser run passed dependency installation, audit, unit/integration tests, and production build, but exposed stale Playwright selectors in keyboard-navigation and JSON-export tests.
+- Those selectors have been corrected; dashboard analytics and focused unit/E2E tests have since been added. The latest CI result is pending.
 
 PR #2 is still open and has not been merged. The [existing production deployment](https://job-application-evidence-planner.vercel.app/) may still serve an earlier release; do not treat it as the deployment of the current PR head until a fresh deployment is verified.
 
@@ -36,14 +35,16 @@ PR #2 is still open and has not been merged. The [existing production deployment
 | --- | --- |
 | Application/evidence CRUD and pipeline stages | Implemented; unit and browser tests pass |
 | Follow-up reminders and evidence readiness | Implemented; tested |
-| Search and application-stage filtering | Implemented; tested |\n| Application and evidence sorting | Implemented; sorting E2E coverage added |
+| Search and application-stage filtering | Implemented; tested |
+| Application and evidence sorting | Implemented; sorting E2E coverage added |
+| Pipeline distribution and evidence readiness analytics | Implemented; unit and browser regression tests added |
 | Evidence readiness-status filtering | Implemented; browser test passes |
 | JSON export/import and backup merge validation | Implemented; repository and browser tests pass |
 | CSV export for spreadsheet analysis | Implemented; serialization and download tests added |
 | IndexedDB persistence and linked-evidence preservation | Implemented; browser tests pass |
 | Reproducible dependency installation | `package-lock.json` committed; CI uses `npm ci` |
-| Dependency audit, 23 unit/integration tests, production build | Passed in GitHub Actions run `42017725845` |
-| Chromium browser E2E | 8/8 passed in GitHub Actions run `42017725845` |
+| Baseline dependency audit, unit/integration tests, production build | Passed in GitHub Actions run `42017725845`; current head re-verification pending |
+| Three-browser Playwright suite | Current head verification pending after fixing stale test selectors |
 | Current PR merge and production deployment | Pending; PR #2 has not been merged |
 
 **Remaining release hardening:** Firefox/WebKit coverage, real Android/iOS device checks, keyboard-only and screen-reader testing, and a formal accessibility audit. The application remains browser-local: records do not sync across devices, and there are no email, push, or background reminders. Export JSON backups periodically because clearing browser site data can remove IndexedDB records.
