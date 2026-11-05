@@ -90,6 +90,7 @@ test("deleting an application preserves its evidence as unlinked", async ({ page
   await page.getByRole("button", { name: "Save application" }).click();
 
   await page.getByRole("button", { name: /evidence library/i }).click();
+  await page.getByLabel("Related application").selectOption({ label: "Continuity Labs — Systems Engineer" });
   await page.getByLabel("Role requirement").fill("Design resilient services");
   await page.getByLabel("Evidence title").fill("Fault-tolerant worker project");
   await page.getByLabel("Your contribution").fill("Implemented retry and recovery behavior");
