@@ -45,7 +45,7 @@ test("application search filters results and clear restores them", async ({ page
   await page.getByRole("button", { name: /applications/i }).click();
   const search = page.getByRole("textbox", { name: "Search records" });
   await search.fill("no-such-company");
-  await expect(page.getByText("No roles in this stage")).toBeVisible();
+  await expect(page.getByText("No matching applications")).toBeVisible();
   await page.getByRole("button", { name: "Clear search" }).click();
   await expect(page.getByText("Northstar", { exact: true })).toBeVisible();
 });
