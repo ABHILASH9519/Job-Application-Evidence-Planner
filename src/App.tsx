@@ -13,7 +13,7 @@ import {
   type ApplicationInput,
   type EvidenceInput,
 } from "./repository";
-import { APPLICATION_STAGES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
+import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
@@ -40,6 +40,7 @@ export default function App() {
   const [allEvidence, setAllEvidence] = useState<EvidenceRecord[]>([]);
   const [query, setQuery] = useState("");
   const [stageFilter, setStageFilter] = useState<"all" | ApplicationStage>("all");
+  const [evidenceStatusFilter, setEvidenceStatusFilter] = useState<"all" | EvidenceStatus>("all");
   const [activeView, setActiveView] = useState<"overview" | "applications" | "evidence">("overview");
   const [applicationForm, setApplicationForm] = useState<ApplicationInput>(emptyApplication);
   const [evidenceForm, setEvidenceForm] = useState<EvidenceInput>(emptyEvidence);
@@ -97,6 +98,7 @@ export default function App() {
   }, [query]);
 
   const visibleApplications = useMemo(() => stageFilter === "all" ? applications : applications.filter((item) => (item.stage ?? "saved") === stageFilter), [applications, stageFilter]);
+  const visibleEvidence = useMemo(() => evidenceStatusFilter === "all" ? evidence : evidence.filter((item) => item.status === evidenceStatusFilter), [evidence, evidenceStatusFilter]);
   const dueFollowUps = useMemo(() => allApplications.filter((item) => item.followUpAt && item.followUpAt <= localDate() && item.stage !== "rejected").sort((a, b) => a.followUpAt.localeCompare(b.followUpAt)), [allApplications]);
   const completedCount = useMemo(() => evidence.filter((item) => item.status === "completed").length, [evidence]);
   const inProgressCount = useMemo(() => evidence.filter((item) => item.status === "in_progress").length, [evidence]);
@@ -309,9 +311,10 @@ export default function App() {
                 <div className="form-actions"><button className="button button-primary" type="submit">{editingEvidence ? "Save changes" : "Save evidence"}</button>{editingEvidence && <button className="button button-secondary" type="button" onClick={() => { setEditingEvidence(undefined); setEvidenceForm(emptyEvidence); }}>Cancel</button>}</div>
               </form>
             </section>
-            <section className="panel-card list-card"><div className="card-heading"><div><h2>Evidence items <span className="count">{evidence.length}</span></h2><p>What backs up your experience?</p></div></div>
+            <section className="panel-card list-card"><div className="card-heading"><div><h2>Evidence items <span className="count">{visibleEvidence.length}</span></h2><p>What backs up your experience?</p></div></div>
               <SearchBox value={query} onChange={setQuery} />
-              {evidence.length === 0 ? <div className="empty-state compact"><h3>No evidence mapped yet</h3><p>Add a requirement and connect it to your work.</p></div> : <div className="record-list">{evidence.map((item) => <article className="record-card" key={item.id}><div className="evidence-top"><div className="record-title"><strong>{item.requirement}</strong><span>{item.evidenceTitle} · {linkedApplication(item.applicationId)?.company ?? "General evidence"}</span></div><StatusPill status={item.status} /></div>{item.contribution && <p className="evidence-detail"><b>Contribution:</b> {item.contribution}</p>}{item.context && <p className="evidence-detail"><b>Context:</b> {item.context}</p>}<div className="evidence-footer"><select aria-label="Evidence status" value={item.status} onChange={(e) => void changeStatus(item.id, e.target.value as EvidenceStatus)}><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select>{item.evidenceUrl && <a href={item.evidenceUrl} target="_blank" rel="noreferrer">Open evidence ↗</a>}<div className="record-actions"><button onClick={() => editEvidence(item)}>Edit</button><button onClick={() => void removeEvidence(item.id)}>Delete</button></div></div></article>)}</div>}
+              <label className="filter-label">Filter by status<select aria-label="Filter evidence by status" value={evidenceStatusFilter} onChange={(e) => setEvidenceStatusFilter(e.target.value as "all" | EvidenceStatus)}><option value="all">All statuses</option>{EVIDENCE_STATUSES.map((status) => <option key={status} value={status}>{formatStatus(status)}</option>)}</select></label>
+              {visibleEvidence.length === 0 ? <div className="empty-state compact"><h3>{allEvidence.length === 0 ? "No evidence mapped yet" : query.trim() ? "No matching evidence" : "No evidence with this status"}</h3><p>{allEvidence.length === 0 ? "Add a requirement and connect it to your work." : query.trim() ? "Try a different search term or clear the search." : "Choose another status or show all statuses."}</p></div> : <div className="record-list">{visibleEvidence.map((item) => <article className="record-card" key={item.id}><div className="evidence-top"><div className="record-title"><strong>{item.requirement}</strong><span>{item.evidenceTitle} · {linkedApplication(item.applicationId)?.company ?? "General evidence"}</span></div><StatusPill status={item.status} /></div>{item.contribution && <p className="evidence-detail"><b>Contribution:</b> {item.contribution}</p>}{item.context && <p className="evidence-detail"><b>Context:</b> {item.context}</p>}<div className="evidence-footer"><select aria-label="Evidence status" value={item.status} onChange={(e) => void changeStatus(item.id, e.target.value as EvidenceStatus)}><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select>{item.evidenceUrl && <a href={item.evidenceUrl} target="_blank" rel="noreferrer">Open evidence ↗</a>}<div className="record-actions"><button onClick={() => editEvidence(item)}>Edit</button><button onClick={() => void removeEvidence(item.id)}>Delete</button></div></div></article>)}</div>}
             </section>
           </div>}
           <footer className="footer-note">Built for honest applications. Keep your evidence specific, accurate, and yours.</footer>
