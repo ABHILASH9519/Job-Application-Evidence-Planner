@@ -16,7 +16,7 @@ Successful GitHub Actions verification run: **42017725845** on commit `aefb57608
 
 The unit/integration tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, dangling application references, IndexedDB migration, bounded input fields, and atomic backup import behavior.
 
-The browser suite covers:
+The CSV unit suite covers quoting and embedded quotes, UTF-8 BOM, linked and unlinked evidence rows, formula-like cell neutralization, and CRLF output.\n\nThe browser suite covers:
 - Create an application, select a pipeline stage, and verify it in the application list.
 - Create evidence linked to an application and mark it completed.
 - Filter evidence by completion status.
@@ -27,7 +27,7 @@ The browser suite covers:
 - Reject an unsupported backup schema without creating records.
 - Delete an application and verify its linked evidence is preserved as general evidence.
 - Navigate the workspace using keyboard focus and Enter, verifying the active navigation state.
-- Check the 390px mobile viewport for horizontal overflow and verify the application form remains usable.
+- Check the 390px mobile viewport for horizontal overflow and verify the application form remains usable.\n- Download CSV and verify that application and linked evidence content are present.
 
 ## Previously recorded production browser walkthrough
 
