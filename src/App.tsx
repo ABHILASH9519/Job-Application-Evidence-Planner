@@ -16,7 +16,7 @@ import {
 } from "./repository";
 import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
 import { buildWorkspaceCsv } from "./csv";
-import { getApplicationStageMetrics, getEvidenceReadinessMetrics } from "./analytics";
+import { getApplicationStageMetrics, getEvidenceReadinessMetrics, getStaleApplications } from "./analytics";
 import { addCalendarDays } from "./dates";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
@@ -127,6 +127,7 @@ export default function App() {
   const dueFollowUps = useMemo(() => allApplications.filter((item) => item.followUpAt && item.followUpAt <= localDate() && item.stage !== "rejected").sort((a, b) => a.followUpAt.localeCompare(b.followUpAt)), [allApplications]);
   const stageMetrics = useMemo(() => getApplicationStageMetrics(allApplications), [allApplications]);
   const readinessMetrics = useMemo(() => getEvidenceReadinessMetrics(allEvidence), [allEvidence]);
+  const staleApplications = useMemo(() => getStaleApplications(allApplications, localDate()), [allApplications]);
 
   async function submitApplication(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -350,6 +351,10 @@ export default function App() {
               </div>}
             </div>
             <section className="panel-card follow-up-panel"><div className="section-heading"><div><h2>Follow-up reminders</h2><p>Dates that need your attention.</p></div><span className="count">{dueFollowUps.length}</span></div>{dueFollowUps.length === 0 ? <p className="follow-up-empty">No follow-ups due today. Add a follow-up date to any tracked role.</p> : <div className="activity-list">{dueFollowUps.slice(0, 5).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">◷</div><div className="activity-copy"><strong>{item.company} · {item.role}</strong><span>{item.nextStep || "Follow up on this application"} · {item.followUpAt < localDate() ? "Overdue" : "Due today"}</span></div><div className="follow-up-actions"><button className="text-button" onClick={() => editApplication(item)}>Open</button><button className="text-button" onClick={() => void adjustFollowUp(item, 3)}>+3 days</button><button className="text-button" onClick={() => void adjustFollowUp(item, 7)}>+7 days</button><button className="text-button follow-up-done" onClick={() => void adjustFollowUp(item)}>Done</button></div></div>)}</div>}</section>
+            <section className="panel-card follow-up-panel stale-panel">
+              <div className="section-heading"><div><h2>Needs a check-in</h2><p>Active opportunities with no update in more than 14 days.</p></div><span className="count">{staleApplications.length}</span></div>
+              {staleApplications.length === 0 ? <p className="follow-up-empty">No inactive applications need attention right now.</p> : <div className="activity-list">{staleApplications.slice(0, 5).map(({ application, daysSinceUpdate }) => <div className="activity-row" key={application.id}><div className="activity-icon application-icon">⌛</div><div className="activity-copy"><strong>{application.company} · {application.role}</strong><span>{formatStage(application.stage)} · No update for {daysSinceUpdate} days</span></div><button className="text-button" onClick={() => editApplication(application)}>Review →</button></div>)}</div>}
+            </section>
             <div className="privacy-banner"><span>◈</span><div><strong>Your information stays yours.</strong><p>Applications and evidence are stored in this browser using IndexedDB. Nothing is uploaded to a server.</p></div></div>
           </>}
 
