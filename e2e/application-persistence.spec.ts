@@ -120,7 +120,7 @@ test("workspace navigation is usable with the keyboard", async ({ page }) => {
   await page.keyboard.press("Enter");
 
   await expect(page.getByRole("button", { name: /applications/i })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("heading", { name: /applications/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your applications", exact: true })).toBeVisible();
 });
 
 test("the workspace remains usable at a narrow mobile viewport", async ({ page }) => {
