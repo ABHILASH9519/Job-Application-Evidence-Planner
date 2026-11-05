@@ -26,6 +26,8 @@ The browser suite covers:
 - Import a versioned backup and verify the application/evidence relationship.
 - Reject an unsupported backup schema without creating records.
 - Delete an application and verify its linked evidence is preserved as general evidence.
+- Navigate the workspace using keyboard focus and Enter, verifying the active navigation state.
+- Check the 390px mobile viewport for horizontal overflow and verify the application form remains usable.
 
 ## Previously recorded production browser walkthrough
 
@@ -56,9 +58,9 @@ The recorded walkthrough covered:
 
 ## Known limitations and pending hardening
 
-- Firefox and WebKit/Safari browser coverage is not yet in CI.
+- Firefox and WebKit/Safari projects are now configured in Playwright, and CI installs all three browser engines; the expanded run is pending verification.
 - Real Android/iOS device testing remains outstanding.
-- Keyboard-only, screen-reader, and formal accessibility-audit coverage remains outstanding.
+- Keyboard navigation has a browser regression test; screen-reader and formal accessibility-audit coverage remains outstanding.
 - No cross-device synchronization, login/account system, recruiter email integration, push notifications, or background reminders.
 - Follow-up reminders are displayed when the user opens the workspace.
 - Browser site-data clearing can remove IndexedDB records; users should export JSON backups periodically.
@@ -66,4 +68,4 @@ The recorded walkthrough covered:
 
 ## Release gate
 
-The current PR branch passed dependency installation, dependency audit, all 23 unit/integration tests, the production build, and all 8 committed Chromium browser tests in GitHub Actions run **42017725845**. Cross-browser and formal accessibility checks remain pending, and production deployment must be verified after merge.
+The branch previously passed dependency installation, dependency audit, all 23 unit/integration tests, the production build, and 8 Chromium browser tests in GitHub Actions run **42017725845**. The current PR head adds Firefox/WebKit execution plus keyboard and mobile-viewport regression tests; its latest CI run must pass before those additions are considered verified. Formal screen-reader/accessibility checks and production deployment verification after merge remain pending.
