@@ -3,6 +3,8 @@ export function addCalendarDays(date: string, days: number): string {
     throw new Error("A valid date and whole number of days are required.");
   }
   const [year, month, day] = date.split("-").map(Number);
+  const original = new Date(Date.UTC(year, month - 1, day));
+  if (original.toISOString().slice(0, 10) !== date) throw new Error("A valid date and whole number of days are required.");
   const value = new Date(year, month - 1, day + days);
   if (value.getFullYear() !== year || Number.isNaN(value.getTime())) {
     throw new Error("The follow-up date is outside the supported range.");
