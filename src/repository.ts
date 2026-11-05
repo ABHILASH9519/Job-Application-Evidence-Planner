@@ -21,14 +21,14 @@ function timestamp(): string {
   return new Date().toISOString();
 }
 
-function requiredText(value: string, field: string, maxLength = FIELD_LIMITS.longText): string {
+function requiredText(value: string, field: string, maxLength: number = FIELD_LIMITS.longText): string {
   const normalized = value.trim();
   if (!normalized) throw new Error(`${field} is required.`);
   if (normalized.length > maxLength) throw new Error(`${field} must be ${maxLength} characters or fewer.`);
   return normalized;
 }
 
-function optionalText(value: string | undefined, field: string, maxLength = FIELD_LIMITS.longText): string {
+function optionalText(value: string | undefined, field: string, maxLength: number = FIELD_LIMITS.longText): string {
   const normalized = value?.trim() ?? "";
   if (normalized.length > maxLength) throw new Error(`${field} must be ${maxLength} characters or fewer.`);
   return normalized;
