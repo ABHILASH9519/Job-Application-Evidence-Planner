@@ -6,10 +6,10 @@ export function addCalendarDays(date: string, days: number): string {
   const original = new Date(Date.UTC(year, month - 1, day));
   if (original.toISOString().slice(0, 10) !== date) throw new Error("A valid date and whole number of days are required.");
   const value = new Date(year, month - 1, day + days);
-  if (value.getFullYear() !== year || Number.isNaN(value.getTime())) {
+  if (Number.isNaN(value.getTime()) || value.getFullYear() < 1 || value.getFullYear() > 9999) {
     throw new Error("The follow-up date is outside the supported range.");
   }
-  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+  return `${String(value.getFullYear()).padStart(4, "0")}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
 }
 
 export function daysBetweenDates(from: string, to: string): number {
