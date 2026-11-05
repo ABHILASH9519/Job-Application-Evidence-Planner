@@ -11,7 +11,7 @@ A privacy-first workspace for organizing job applications and mapping role requi
 - Record the applicant's contribution and relevant limitations or context.
 - Track evidence progress as planned, in progress, or completed.
 - Search and review application and evidence records.
-- Filter opportunities by pipeline stage and evidence by readiness status.
+- Filter opportunities by pipeline stage and evidence by readiness status.\n- Sort applications by update time, company, follow-up date, or pipeline stage; sort evidence by update time, requirement, or status.
 - Export a structured JSON report and merge backups without deleting unrelated local records.
 - Export application and evidence rows as spreadsheet-compatible CSV with formula-injection mitigation.
 - Download a spreadsheet-friendly CSV export with linked-application context and formula-injection mitigation.
@@ -36,7 +36,7 @@ PR #2 is still open and has not been merged. The [existing production deployment
 | --- | --- |
 | Application/evidence CRUD and pipeline stages | Implemented; unit and browser tests pass |
 | Follow-up reminders and evidence readiness | Implemented; tested |
-| Search and application-stage filtering | Implemented; tested |
+| Search and application-stage filtering | Implemented; tested |\n| Application and evidence sorting | Implemented; sorting E2E coverage added |
 | Evidence readiness-status filtering | Implemented; browser test passes |
 | JSON export/import and backup merge validation | Implemented; repository and browser tests pass |
 | CSV export for spreadsheet analysis | Implemented; serialization and download tests added |
