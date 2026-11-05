@@ -10,12 +10,14 @@ import {
   saveEvidence,
   searchRecords,
   updateEvidenceStatus,
+  updateFollowUpDate,
   type ApplicationInput,
   type EvidenceInput,
 } from "./repository";
 import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
 import { buildWorkspaceCsv } from "./csv";
 import { getApplicationStageMetrics, getEvidenceReadinessMetrics } from "./analytics";
+import { addCalendarDays } from "./dates";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
@@ -199,6 +201,17 @@ export default function App() {
     }
   }
 
+  async function adjustFollowUp(item: ApplicationRecord, days?: number) {
+    try {
+      const nextDate = days === undefined ? "" : addCalendarDays(localDate(), days);
+      await updateFollowUpDate(item.id, nextDate);
+      await refresh();
+      setNotice(days === undefined ? "Follow-up marked complete." : `Follow-up moved to ${nextDate}.`);
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not update this follow-up.");
+    }
+  }
   async function changeStatus(id: string, status: EvidenceStatus) {
     try {
       await updateEvidenceStatus(id, status);
@@ -336,7 +349,7 @@ export default function App() {
                 {applications.slice(0, 3).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">▤</div><div className="activity-copy"><strong>{item.role}</strong><span>{item.company} · Application</span></div><span className="plain-tag">Tracked</span></div>)}
               </div>}
             </div>
-            <section className="panel-card follow-up-panel"><div className="section-heading"><div><h2>Follow-up reminders</h2><p>Dates that need your attention.</p></div><span className="count">{dueFollowUps.length}</span></div>{dueFollowUps.length === 0 ? <p className="follow-up-empty">No follow-ups due today. Add a follow-up date to any tracked role.</p> : <div className="activity-list">{dueFollowUps.slice(0, 5).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">◷</div><div className="activity-copy"><strong>{item.company} · {item.role}</strong><span>{item.nextStep || "Follow up on this application"} · {item.followUpAt < localDate() ? "Overdue" : "Due today"}</span></div><button className="text-button" onClick={() => editApplication(item)}>Open →</button></div>)}</div>}</section>
+            <section className="panel-card follow-up-panel"><div className="section-heading"><div><h2>Follow-up reminders</h2><p>Dates that need your attention.</p></div><span className="count">{dueFollowUps.length}</span></div>{dueFollowUps.length === 0 ? <p className="follow-up-empty">No follow-ups due today. Add a follow-up date to any tracked role.</p> : <div className="activity-list">{dueFollowUps.slice(0, 5).map((item) => <div className="activity-row" key={item.id}><div className="activity-icon application-icon">◷</div><div className="activity-copy"><strong>{item.company} · {item.role}</strong><span>{item.nextStep || "Follow up on this application"} · {item.followUpAt < localDate() ? "Overdue" : "Due today"}</span></div><div className="follow-up-actions"><button className="text-button" onClick={() => editApplication(item)}>Open</button><button className="text-button" onClick={() => void adjustFollowUp(item, 3)}>+3 days</button><button className="text-button" onClick={() => void adjustFollowUp(item, 7)}>+7 days</button><button className="text-button follow-up-done" onClick={() => void adjustFollowUp(item)}>Done</button></div></div>)}</div>}</section>
             <div className="privacy-banner"><span>◈</span><div><strong>Your information stays yours.</strong><p>Applications and evidence are stored in this browser using IndexedDB. Nothing is uploaded to a server.</p></div></div>
           </>}
 
