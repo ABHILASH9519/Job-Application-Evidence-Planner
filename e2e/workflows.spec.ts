@@ -62,3 +62,34 @@ test("export action downloads a JSON report", async ({ page }) => {
   expect(download.suggestedFilename()).toBe("job-application-evidence-report.json");
   await expect(page.getByRole("status")).toContainText("Your JSON report has been exported.");
 });
+
+test("applications can be sorted by company name", async ({ page }) => {
+  await page.goto("/");
+  for (const company of ["Zenith Systems", "Atlas Cloud"]) {
+    await page.getByRole("button", { name: /add application/i }).click();
+    await page.getByLabel("Company name").fill(company);
+    await page.getByLabel("Role title").fill("Software Engineer");
+    await page.getByRole("button", { name: "Save application" }).click();
+    await expect(page.getByRole("status")).toContainText("Application saved locally.");
+  }
+
+  await page.getByRole("button", { name: /applications/i }).click();
+  await page.getByLabel("Sort applications by").selectOption("company");
+  const companies = await page.locator(".record-card .record-title span").allTextContents();
+  expect(companies.slice(0, 2)).toEqual(["Atlas Cloud", "Zenith Systems"]);
+});
+
+test("evidence can be sorted alphabetically by requirement", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  for (const requirement of ["Zero-downtime deployments", "API reliability"]) {
+    await page.getByLabel("Role requirement").fill(requirement);
+    await page.getByLabel("Evidence title").fill("Supporting project");
+    await page.getByRole("button", { name: "Save evidence" }).click();
+    await expect(page.getByRole("status")).toContainText("Evidence saved locally.");
+  }
+
+  await page.getByLabel("Sort evidence by").selectOption("requirement");
+  const requirements = await page.locator(".record-card .record-title strong").allTextContents();
+  expect(requirements.slice(0, 2)).toEqual(["API reliability", "Zero-downtime deployments"]);
+});
