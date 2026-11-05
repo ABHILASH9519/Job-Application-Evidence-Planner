@@ -52,12 +52,18 @@ export default function App() {
 
   async function refresh(search = query) {
     const requestId = ++refreshSequence.current;
-    const [result, allApps, everyEvidence] = await Promise.all([searchRecords(search), listApplications(), listEvidence()]);
-    if (requestId !== refreshSequence.current) return;
-    setApplications(result.applications);
-    setAllApplications(allApps);
-    setAllEvidence(everyEvidence);
-    setEvidence(result.evidence);
+    try {
+      const [result, allApps, everyEvidence] = await Promise.all([searchRecords(search), listApplications(), listEvidence()]);
+      if (requestId !== refreshSequence.current) return;
+      setApplications(result.applications);
+      setAllApplications(allApps);
+      setAllEvidence(everyEvidence);
+      setEvidence(result.evidence);
+    } catch (reason) {
+      // Ignore a failed request if a newer search has already superseded it.
+      if (requestId !== refreshSequence.current) return;
+      throw reason;
+    }
   }
 
   useEffect(() => {
