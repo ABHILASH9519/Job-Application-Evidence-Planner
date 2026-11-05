@@ -57,7 +57,7 @@ test("application search filters results and clear restores them", async ({ page
 test("export action downloads a JSON report", async ({ page }) => {
   await page.goto("/");
   const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "↓ Export report" }).click();
+  await page.getByRole("button", { name: "↓ Export JSON" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("job-application-evidence-report.json");
   await expect(page.getByRole("status")).toContainText("Your JSON report has been exported.");
