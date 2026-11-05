@@ -136,3 +136,30 @@ test("the workspace remains usable at a narrow mobile viewport", async ({ page }
   await expect(page.getByLabel("Company name")).toBeVisible();
   await expect(page.getByLabel("Role title")).toBeVisible();
 });
+
+test("CSV export downloads application and evidence records", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /add application/i }).click();
+  await page.getByLabel("Company name").fill("CSV Export Labs");
+  await page.getByLabel("Role title").fill("Automation Engineer");
+  await page.getByRole("button", { name: "Save application" }).click();
+
+  await page.getByRole("button", { name: /evidence library/i }).click();
+  await page.getByLabel("Related application").selectOption({ label: "CSV Export Labs — Automation Engineer" });
+  await page.getByLabel("Role requirement").fill("Build reliable test automation");
+  await page.getByLabel("Evidence title").fill("Browser test suite");
+  await page.getByRole("button", { name: "Save evidence" }).click();
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: /export csv/i }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("job-application-evidence.csv");
+
+  const path = await download.path();
+  expect(path).not.toBeNull();
+  const { readFile } = await import("node:fs/promises");
+  const csv = await readFile(path!, "utf8");
+  expect(csv).toContain("CSV Export Labs");
+  expect(csv).toContain("Build reliable test automation");
+  expect(csv).toContain("Browser test suite");
+});
