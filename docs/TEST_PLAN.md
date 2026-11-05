@@ -16,7 +16,9 @@ Successful GitHub Actions verification run: **42017725845** on commit `aefb57608
 
 The unit/integration tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, dangling application references, IndexedDB migration, bounded input fields, and atomic backup import behavior.
 
-The CSV unit suite covers quoting and embedded quotes, UTF-8 BOM, linked and unlinked evidence rows, formula-like cell neutralization, and CRLF output.\n\nThe browser suite covers:
+The CSV unit suite covers quoting and embedded quotes, UTF-8 BOM, linked and unlinked evidence rows, formula-like cell neutralization, and CRLF output. Dashboard analytics tests cover complete pipeline-stage distributions, empty-state percentages, evidence readiness counts, and linked-evidence coverage.
+
+The browser suite covers:
 - Create an application, select a pipeline stage, and verify it in the application list.
 - Create evidence linked to an application and mark it completed.
 - Filter evidence by completion status.
@@ -27,7 +29,9 @@ The CSV unit suite covers quoting and embedded quotes, UTF-8 BOM, linked and unl
 - Reject an unsupported backup schema without creating records.
 - Delete an application and verify its linked evidence is preserved as general evidence.
 - Navigate the workspace using keyboard focus and Enter, verifying the active navigation state.
-- Check the 390px mobile viewport for horizontal overflow and verify the application form remains usable.\n- Download CSV and verify that application and linked evidence content are present.
+- Check the 390px mobile viewport for horizontal overflow and verify the application form remains usable.
+- Download CSV and verify that application and linked evidence content are present.
+- Verify overview pipeline counts and evidence-completion/linkage percentages using accessible progress indicators.
 
 ## Previously recorded production browser walkthrough
 
@@ -68,4 +72,4 @@ The recorded walkthrough covered:
 
 ## Release gate
 
-The branch previously passed dependency installation, dependency audit, all 23 unit/integration tests, the production build, and 8 Chromium browser tests in GitHub Actions run **42017725845**. The current PR head adds Firefox/WebKit execution plus keyboard and mobile-viewport regression tests; its latest CI run must pass before those additions are considered verified. Formal screen-reader/accessibility checks and production deployment verification after merge remain pending.
+The branch previously passed dependency installation, dependency audit, all 23 unit/integration tests, the production build, and 8 Chromium browser tests in GitHub Actions run **42017725845**. The current PR head adds Firefox/WebKit execution, keyboard and mobile-viewport regression tests, and dashboard analytics. The first three-browser run exposed stale test selectors (not product failures); selector corrections and analytics tests have since been pushed. The latest workflow must pass before the expanded browser suite is considered verified. Formal screen-reader/accessibility checks and production deployment verification after merge remain pending.
