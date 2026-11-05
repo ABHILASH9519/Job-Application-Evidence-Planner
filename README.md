@@ -5,9 +5,10 @@ A privacy-first workspace for organizing job applications and mapping role requi
 ## Current capabilities
 
 - Track applications by company, role, job URL, application date, pipeline stage, follow-up date, next step, and notes.
-- Move opportunities through Saved, Applied, Assessment, Interview, Offer, and Rejected stages.
+- Move opportunities through Saved, Applied, Assessment, Interview, Offer, and Rejected stages, including quick stage changes from each application card.
 - See overdue follow-ups, application pipeline distribution, and evidence completion/linkage analytics.
 - Snooze due follow-ups by three or seven days, or mark a reminder complete without deleting the application.
+- Surface active applications that have not been updated for more than 14 days.
 - Capture role requirements and connect each one to a project, experience, or evidence link.
 - Record the applicant's contribution and relevant limitations or context.
 - Track evidence progress as planned, in progress, or completed.
@@ -36,6 +37,8 @@ PR #2 is still open and has not been merged. The [existing production deployment
 | --- | --- |
 | Application/evidence CRUD and pipeline stages | Implemented; unit and browser tests pass |
 | Follow-up reminders and evidence readiness | Implemented; snooze/completion actions and date validation tested |
+| Stale application insights | Implemented; active-stage filtering and age thresholds tested |
+| Quick pipeline stage changes | Implemented; repository and browser regression tests added |
 | Search and application-stage filtering | Implemented; tested |
 | Application and evidence sorting | Implemented; sorting E2E coverage added |
 | Pipeline distribution and evidence readiness analytics | Implemented; unit and browser regression tests added |
