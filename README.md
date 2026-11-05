@@ -13,6 +13,7 @@ A privacy-first workspace for organizing job applications and mapping role requi
 - Search and review application and evidence records.
 - Filter opportunities by pipeline stage and evidence by readiness status.
 - Export a structured JSON report and merge backups without deleting unrelated local records.
+- Download a spreadsheet-friendly CSV export with linked-application context and formula-injection mitigation.
 
 ## Privacy and data handling
 
@@ -50,6 +51,7 @@ PR #2 is still open and has not been merged. The [existing production deployment
 - [Implemented architecture](docs/ARCHITECTURE.md)
 - [Data model](docs/DATA_MODEL.md)
 - [Backup format and compatibility](docs/BACKUP_FORMAT.md)
+- [CSV export format and safety](docs/CSV_EXPORT.md)
 - [Test plan and verification report](docs/TEST_PLAN.md)
 - [Release checklist](docs/RELEASE_CHECKLIST.md)
 - [Contribution guidelines](CONTRIBUTING.md)
