@@ -27,14 +27,14 @@ type CsvValue = string | undefined;
 function escapeCell(value: CsvValue): string {
   let normalized = value ?? "";
   // Prevent spreadsheet applications from evaluating imported text as a formula.
-  if (/^[\\s]*[=+@-]/.test(normalized) || /^[\\t\\r]/.test(normalized)) {
+  if (/^\\s*[=+@-]/.test(normalized)) {
     normalized = `'${normalized}`;
   }
   return `"${normalized.replace(/"/g, '""')}"`;
 }
 
 function serializeRow(values: CsvValue[]): string {
-  return values.map(escapeCell).join(",");
+  return Array.from({ length: COLUMNS.length }, (_, index) => escapeCell(values[index])).join(",");
 }
 
 export function buildWorkspaceCsv(
