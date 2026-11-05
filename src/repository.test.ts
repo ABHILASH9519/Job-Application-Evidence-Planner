@@ -204,6 +204,43 @@ describe("evidence records", () => {
       .rejects.toThrow("Next step must be 500 characters or fewer");
   });
 
+  it("does not partially import applications when an evidence relationship is invalid", async () => {
+    const importedApplication = {
+      id: "transaction-app",
+      company: "Transactional Import",
+      role: "Platform Engineer",
+      jobUrl: "",
+      appliedAt: "",
+      stage: "saved" as const,
+      followUpAt: "",
+      nextStep: "",
+      notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    const orphanEvidence = {
+      id: "transaction-evidence",
+      applicationId: "missing-parent",
+      requirement: "Reliable systems",
+      evidenceTitle: "Distributed worker project",
+      evidenceUrl: "",
+      contribution: "",
+      context: "",
+      status: "planned" as const,
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+
+    await expect(importEvidenceReport({
+      schemaVersion: 2,
+      applications: [importedApplication],
+      evidence: [orphanEvidence],
+    })).rejects.toThrow("linked to an application that is not available");
+
+    expect(await db.applications.get(importedApplication.id)).toBeUndefined();
+    expect(await db.evidence.get(orphanEvidence.id)).toBeUndefined();
+  });
+
   it("rejects backup records with invalid timestamps or oversized fields", async () => {
     const valid = {
       id: "valid-app", company: "Example", role: "Engineer", jobUrl: "", appliedAt: "",
