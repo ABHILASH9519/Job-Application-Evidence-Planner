@@ -97,6 +97,31 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
 .privacy-banner > span { color: #77c6a4; font-size: 18px; }
 .privacy-banner strong { display: block; color: #b8d9ca; font-size: 11px; margin-bottom: 4px; }
 .privacy-banner p { color: #819a8e; font-size: 10px; margin: 0; line-height: 1.5; }
+
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 14px; margin: -17px 0 35px; }
+.dashboard-card { padding: 18px 19px; min-width: 0; }
+.dashboard-card .section-heading { margin-bottom: 17px; }
+.pipeline-list { display: grid; gap: 13px; }
+.pipeline-row { display: grid; gap: 6px; }
+.pipeline-label { display: flex; justify-content: space-between; align-items: center; color: #aeb6c6; font-size: 10px; }
+.pipeline-label strong { color: #e2e4ed; font-size: 10px; font-variant-numeric: tabular-nums; }
+.pipeline-track, .readiness-track { height: 7px; border-radius: 20px; background: #252c3a; overflow: hidden; }
+.pipeline-track span, .readiness-track span { display: block; height: 100%; min-width: 0; border-radius: inherit; background: linear-gradient(90deg, #7660d8, #a78bfa); transition: width .2s ease; }
+.dashboard-empty { color: #858da0; font-size: 11px; margin: 26px 0 10px; text-align: center; }
+.readiness-summary { display: flex; align-items: baseline; gap: 8px; margin: 22px 0 11px; }
+.readiness-summary strong { font: 700 25px Manrope, sans-serif; color: #e9eaf2; }
+.readiness-summary span { color: #858da0; font-size: 10px; }
+.readiness-track { height: 9px; }
+.readiness-track span { background: linear-gradient(90deg, #3e9d7a, #79d6ad); }
+.readiness-breakdown { display: grid; gap: 10px; margin-top: 18px; }
+.readiness-breakdown > div { display: flex; align-items: center; gap: 8px; color: #9da6b7; font-size: 10px; }
+.readiness-breakdown strong { margin-left: auto; color: #e2e4ed; font-variant-numeric: tabular-nums; }
+.readiness-dot { width: 7px; height: 7px; border-radius: 50%; }
+.planned-dot { background: #d9bd83; }
+.progress-dot { background: #8ebeff; }
+.completed-dot { background: #83d5b2; }
+.linked-summary { color: #778196; font-size: 10px; border-top: 1px solid #293142; margin: 16px 0 0; padding-top: 12px; }
+
 .two-column { display: grid; grid-template-columns: minmax(270px, .82fr) minmax(0, 1.18fr); gap: 16px; align-items: start; }
 .form-card, .list-card { padding: 20px; }
 .card-heading { margin-bottom: 19px; }
