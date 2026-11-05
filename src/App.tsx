@@ -14,6 +14,7 @@ import {
   type EvidenceInput,
 } from "./repository";
 import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
+import { buildWorkspaceCsv } from "./csv";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
@@ -204,6 +205,24 @@ export default function App() {
     }
   }
 
+  async function exportCsv() {
+    try {
+      const blob = new Blob([buildWorkspaceCsv(allApplications, allEvidence)], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "job-application-evidence.csv";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+      setNotice("Your CSV export has been downloaded.");
+      setError("");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not export your CSV.");
+    }
+  }
+
   async function importBackup(event: ChangeEvent<HTMLInputElement>) {
     const input = event.currentTarget;
     const file = input.files?.[0];
@@ -247,7 +266,7 @@ export default function App() {
       <section className="main-panel" aria-busy={loading}>
         <header className="topbar">
           <div className="breadcrumb">Workspace <span>/</span> <strong>{activeView === "overview" ? "Overview" : activeView === "applications" ? "Applications" : "Evidence library"}</strong></div>
-          <div className="top-actions"><span className="local-indicator"><i /> Local storage active</span><label className="button button-secondary button-small import-label">↑ Import backup<input className="import-input" type="file" accept="application/json,.json" onChange={(event) => void importBackup(event)} /></label><button className="button button-secondary button-small" onClick={() => void exportReport()}>↓ Export report</button></div>
+          <div className="top-actions"><span className="local-indicator"><i /> Local storage active</span><label className="button button-secondary button-small import-label">↑ Import backup<input className="import-input" type="file" accept="application/json,.json" onChange={(event) => void importBackup(event)} /></label><button className="button button-secondary button-small" onClick={() => void exportCsv()}>↓ Export CSV</button><button className="button button-secondary button-small" onClick={() => void exportReport()}>↓ Export JSON</button></div>
         </header>
 
         <div className="content">
