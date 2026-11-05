@@ -13,6 +13,7 @@ import {
   searchRecords,
   updateEvidenceStatus,
   updateFollowUpDate,
+  updateApplicationStage,
 } from "./repository";
 
 beforeEach(async () => {
@@ -43,6 +44,13 @@ describe("application records", () => {
   });
 
 
+  it("updates an application stage directly with validation", async () => {
+    const id = await saveApplication({ company: "Stage Co", role: "Engineer", stage: "saved" });
+    await updateApplicationStage(id, "interview");
+    expect(await db.applications.get(id)).toMatchObject({ stage: "interview" });
+    await expect(updateApplicationStage(id, "unknown" as never)).rejects.toThrow("supported application stage");
+    await expect(updateApplicationStage("missing-id", "applied")).rejects.toThrow("Application not found");
+  });
   it("reschedules and clears follow-up dates with validation", async () => {
     const id = await saveApplication({ company: "Follow-up Co", role: "Engineer", followUpAt: "2026-11-10" });
     await updateFollowUpDate(id, "2026-11-17");
