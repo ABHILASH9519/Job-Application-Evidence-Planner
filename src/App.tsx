@@ -15,6 +15,7 @@ import {
 } from "./repository";
 import { APPLICATION_STAGES, EVIDENCE_STATUSES, type ApplicationRecord, type ApplicationStage, type EvidenceRecord, type EvidenceStatus } from "./types";
 import { buildWorkspaceCsv } from "./csv";
+import { getApplicationStageMetrics, getEvidenceReadinessMetrics } from "./analytics";
 
 const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 
@@ -122,8 +123,8 @@ export default function App() {
     });
   }, [evidence, evidenceStatusFilter, evidenceSort]);
   const dueFollowUps = useMemo(() => allApplications.filter((item) => item.followUpAt && item.followUpAt <= localDate() && item.stage !== "rejected").sort((a, b) => a.followUpAt.localeCompare(b.followUpAt)), [allApplications]);
-  const completedCount = useMemo(() => evidence.filter((item) => item.status === "completed").length, [evidence]);
-  const inProgressCount = useMemo(() => evidence.filter((item) => item.status === "in_progress").length, [evidence]);
+  const stageMetrics = useMemo(() => getApplicationStageMetrics(allApplications), [allApplications]);
+  const readinessMetrics = useMemo(() => getEvidenceReadinessMetrics(allEvidence), [allEvidence]);
 
   async function submitApplication(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -301,10 +302,32 @@ export default function App() {
 
           {activeView === "overview" && <>
             <div className="stats-grid">
-              <article className="stat-card"><span className="stat-icon violet">▤</span><div className="stat-value">{applications.length}</div><div className="stat-label">Applications tracked</div><div className="stat-foot">Opportunities in your workspace</div></article>
-              <article className="stat-card"><span className="stat-icon blue">◇</span><div className="stat-value">{evidence.length}</div><div className="stat-label">Evidence items</div><div className="stat-foot">Requirements mapped to proof</div></article>
-              <article className="stat-card"><span className="stat-icon amber">◷</span><div className="stat-value">{inProgressCount}</div><div className="stat-label">In progress</div><div className="stat-foot">Evidence still being prepared</div></article>
-              <article className="stat-card"><span className="stat-icon green">✓</span><div className="stat-value">{completedCount}</div><div className="stat-label">Ready to use</div><div className="stat-foot">Completed evidence items</div></article>
+              <article className="stat-card"><span className="stat-icon violet">▤</span><div className="stat-value">{allApplications.length}</div><div className="stat-label">Applications tracked</div><div className="stat-foot">Opportunities in your workspace</div></article>
+              <article className="stat-card"><span className="stat-icon blue">◇</span><div className="stat-value">{allEvidence.length}</div><div className="stat-label">Evidence items</div><div className="stat-foot">Requirements mapped to proof</div></article>
+              <article className="stat-card"><span className="stat-icon amber">◷</span><div className="stat-value">{readinessMetrics.inProgress}</div><div className="stat-label">In progress</div><div className="stat-foot">Evidence still being prepared</div></article>
+              <article className="stat-card"><span className="stat-icon green">✓</span><div className="stat-value">{readinessMetrics.completed}</div><div className="stat-label">Ready to use</div><div className="stat-foot">Completed evidence items</div></article>
+            </div>
+            <div className="dashboard-grid">
+              <section className="panel-card dashboard-card" aria-labelledby="pipeline-heading">
+                <div className="section-heading"><div><h2 id="pipeline-heading">Application pipeline</h2><p>Where each opportunity currently stands.</p></div><span className="count">{allApplications.length} total</span></div>
+                {allApplications.length === 0 ? <p className="dashboard-empty">Add an application to see your pipeline distribution.</p> : <div className="pipeline-list">
+                  {stageMetrics.map((metric) => <div className="pipeline-row" key={metric.stage}>
+                    <div className="pipeline-label"><span>{formatStage(metric.stage)}</span><strong>{metric.count}</strong></div>
+                    <div className="pipeline-track" role="progressbar" aria-label={formatStage(metric.stage)} aria-valuemin={0} aria-valuemax={allApplications.length} aria-valuenow={metric.count}><span style={{ width: String(metric.percentage) + "%" }} /></div>
+                  </div>)}
+                </div>}
+              </section>
+              <section className="panel-card dashboard-card" aria-labelledby="readiness-heading">
+                <div className="section-heading"><div><h2 id="readiness-heading">Evidence readiness</h2><p>How much of your supporting proof is ready.</p></div><span className="count">{readinessMetrics.completionPercentage}% ready</span></div>
+                <div className="readiness-summary"><strong>{readinessMetrics.completed} of {allEvidence.length}</strong><span>evidence items completed</span></div>
+                <div className="readiness-track" role="progressbar" aria-label="Evidence completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={readinessMetrics.completionPercentage}><span style={{ width: String(readinessMetrics.completionPercentage) + "%" }} /></div>
+                <div className="readiness-breakdown">
+                  <div><span className="readiness-dot planned-dot" /> Planned <strong>{readinessMetrics.planned}</strong></div>
+                  <div><span className="readiness-dot progress-dot" /> In progress <strong>{readinessMetrics.inProgress}</strong></div>
+                  <div><span className="readiness-dot completed-dot" /> Completed <strong>{readinessMetrics.completed}</strong></div>
+                </div>
+                <p className="linked-summary">{readinessMetrics.linked} of {allEvidence.length} evidence items linked to an application ({readinessMetrics.linkedPercentage}%).</p>
+              </section>
             </div>
             <div className="section-heading"><div><h2>Recent activity</h2><p>Your latest applications and supporting evidence.</p></div><button className="text-button" onClick={() => setActiveView("evidence")}>View evidence →</button></div>
             <div className="panel-card">
