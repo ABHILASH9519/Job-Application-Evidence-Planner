@@ -225,3 +225,7 @@ h1 { font: 700 clamp(27px, 3vw, 36px)/1.2 Manrope, sans-serif; letter-spacing: -
 .stale-panel .activity-icon { color: #d9bd83; background: #3b3428; }
 .stale-panel .activity-copy span { color: #a69a82; }
 .stale-panel .text-button { white-space: nowrap; }
+
+.stage-quick-select { max-width: 118px; min-width: 92px; padding: 4px 6px; border: 1px solid #30394b; border-radius: 5px; color: #c8cddd; background: #111722; color-scheme: dark; font-size: 9px; }
+.stage-quick-select:focus-visible { outline: 2px solid #8b6cf0; outline-offset: 2px; }
+@media (max-width: 650px) { .stage-quick-select { max-width: 100%; } }
