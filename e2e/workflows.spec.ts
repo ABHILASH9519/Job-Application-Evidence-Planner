@@ -162,3 +162,8 @@ test("follow-up reminders can be marked complete", async ({ page }) => {
   await expect(page.getByRole("status")).toContainText("Follow-up marked complete.");
   await expect(page.getByText("No follow-ups due today. Add a follow-up date to any tracked role.")).toBeVisible();
 });
+test("overview explains when no stale applications need attention", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Needs a check-in" })).toBeVisible();
+  await expect(page.getByText("No inactive applications need attention right now.")).toBeVisible();
+});
