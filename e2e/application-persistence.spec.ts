@@ -122,3 +122,17 @@ test("workspace navigation is usable with the keyboard", async ({ page }) => {
   await expect(page.getByRole("button", { name: /applications/i })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("heading", { name: /applications/i })).toBeVisible();
 });
+
+test("the workspace remains usable at a narrow mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Main navigation" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence, organized." })).toBeVisible();
+
+  const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+  expect(documentWidth).toBeLessThanOrEqual(390);
+
+  await page.getByRole("button", { name: /add application/i }).click();
+  await expect(page.getByLabel("Company name")).toBeVisible();
+  await expect(page.getByLabel("Role title")).toBeVisible();
+});
