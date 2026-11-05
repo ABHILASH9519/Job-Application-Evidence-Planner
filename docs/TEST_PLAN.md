@@ -16,7 +16,7 @@ Successful GitHub Actions verification run: **42017725845** on commit `aefb57608
 
 The unit/integration tests cover application and evidence CRUD, stage and status validation, date validation, linked evidence preservation, search, report export, backup merge, legacy backup compatibility, duplicate IDs, unsafe URLs, dangling application references, IndexedDB migration, bounded input fields, and atomic backup import behavior.
 
-The CSV unit suite covers quoting and embedded quotes, UTF-8 BOM, linked and unlinked evidence rows, formula-like cell neutralization, and CRLF output. Dashboard analytics tests cover complete pipeline-stage distributions, empty-state percentages, evidence readiness counts, and linked-evidence coverage.
+The CSV unit suite covers quoting and embedded quotes, UTF-8 BOM, linked and unlinked evidence rows, formula-like cell neutralization, and CRLF output. Dashboard analytics tests cover complete pipeline-stage distributions, empty-state percentages, evidence readiness counts, and linked-evidence coverage. Calendar utility tests cover leap-year arithmetic, signed date differences, impossible dates, and fractional offsets. Repository tests cover validated follow-up rescheduling and clearing.
 
 The browser suite covers:
 - Create an application, select a pipeline stage, and verify it in the application list.
@@ -32,6 +32,8 @@ The browser suite covers:
 - Check the 390px mobile viewport for horizontal overflow and verify the application form remains usable.
 - Download CSV and verify that application and linked evidence content are present.
 - Verify overview pipeline counts and evidence-completion/linkage percentages using accessible progress indicators.
+- Reschedule due follow-ups by three days and verify the new date persists.
+- Mark a due follow-up complete and verify it leaves the reminder queue.
 
 ## Previously recorded production browser walkthrough
 
