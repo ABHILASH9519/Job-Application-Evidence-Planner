@@ -83,6 +83,34 @@ describe("evidence records", () => {
     expect(Date.parse(report.exportedAt)).not.toBeNaN();
   });
 
+
+  it("validates evidence URLs and linked applications", async () => {
+    await expect(
+      saveEvidence({
+        requirement: "Secure APIs",
+        evidenceTitle: "Unsafe link",
+        evidenceUrl: "javascript:alert(1)",
+      }),
+    ).rejects.toThrow("Evidence URL must be a valid HTTP or HTTPS URL.");
+
+    await expect(
+      saveEvidence({
+        applicationId: "missing-application",
+        requirement: "Secure APIs",
+        evidenceTitle: "Unlinked application",
+      }),
+    ).rejects.toThrow("The selected application no longer exists.");
+
+    const id = await saveEvidence({
+      requirement: "Secure APIs",
+      evidenceTitle: "Security review",
+      evidenceUrl: "https://example.com/security-review",
+    });
+    expect(await db.evidence.get(id)).toMatchObject({
+      evidenceUrl: "https://example.com/security-review",
+    });
+  });
+
   it("updates status and deletes evidence", async () => {
     const id = await saveEvidence({ requirement: "Debugging", evidenceTitle: "Systems project" });
     await updateEvidenceStatus(id, "completed");
