@@ -12,6 +12,8 @@ import {
   saveEvidence,
   searchRecords,
   updateEvidenceStatus,
+  updateFollowUpDate,
+  updateApplicationStage,
 } from "./repository";
 
 beforeEach(async () => {
@@ -42,6 +44,24 @@ describe("application records", () => {
   });
 
 
+  it("updates an application stage directly with validation", async () => {
+    const id = await saveApplication({ company: "Stage Co", role: "Engineer", stage: "saved" });
+    await updateApplicationStage(id, "interview");
+    expect(await db.applications.get(id)).toMatchObject({ stage: "interview" });
+    await expect(updateApplicationStage(id, "unknown" as never)).rejects.toThrow("supported application stage");
+    await expect(updateApplicationStage("missing-id", "applied")).rejects.toThrow("Application not found");
+  });
+  it("reschedules and clears follow-up dates with validation", async () => {
+    const id = await saveApplication({ company: "Follow-up Co", role: "Engineer", followUpAt: "2026-11-10" });
+    await updateFollowUpDate(id, "2026-11-17");
+    expect(await db.applications.get(id)).toMatchObject({ followUpAt: "2026-11-17" });
+
+    await updateFollowUpDate(id, "");
+    expect(await db.applications.get(id)).toMatchObject({ followUpAt: "" });
+
+    await expect(updateFollowUpDate(id, "2026-02-30")).rejects.toThrow("Follow-up date must be a valid date");
+    await expect(updateFollowUpDate("missing-id", "2026-11-20")).rejects.toThrow("Application not found");
+  });
   it("imports legacy backups with default pipeline and follow-up fields", async () => {
     const legacyApplication = {
       id: "legacy-application", company: "Legacy Co", role: "Engineer", jobUrl: "", appliedAt: "",
@@ -72,6 +92,7 @@ describe("evidence records", () => {
     });
 
     const report = await buildEvidenceReport();
+    expect(report.schemaVersion).toBe(2);
     expect(report.evidence[0]).toMatchObject({
       id: evidenceId,
       applicationId,
@@ -218,6 +239,98 @@ describe("evidence records", () => {
         updatedAt: "2026-11-03T00:00:00.000Z",
       }],
     })).rejects.toThrow("linked to an application that is not available");
+  });
+
+  it("rejects oversized user-entered fields before persistence", async () => {
+    await expect(saveApplication({ company: "x".repeat(201), role: "Engineer" }))
+      .rejects.toThrow("Company must be 200 characters or fewer");
+    await expect(saveEvidence({ requirement: "x".repeat(501), evidenceTitle: "Portfolio" }))
+      .rejects.toThrow("Requirement must be 500 characters or fewer");
+    await expect(saveEvidence({ requirement: "Testing", evidenceTitle: "x".repeat(201) }))
+      .rejects.toThrow("Evidence title must be 200 characters or fewer");
+    await expect(saveApplication({ company: "Acme", role: "Engineer", nextStep: "x".repeat(501) }))
+      .rejects.toThrow("Next step must be 500 characters or fewer");
+  });
+
+  it("does not partially import applications when an evidence relationship is invalid", async () => {
+    const importedApplication = {
+      id: "transaction-app",
+      company: "Transactional Import",
+      role: "Platform Engineer",
+      jobUrl: "",
+      appliedAt: "",
+      stage: "saved" as const,
+      followUpAt: "",
+      nextStep: "",
+      notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    const orphanEvidence = {
+      id: "transaction-evidence",
+      applicationId: "missing-parent",
+      requirement: "Reliable systems",
+      evidenceTitle: "Distributed worker project",
+      evidenceUrl: "",
+      contribution: "",
+      context: "",
+      status: "planned" as const,
+      createdAt: "2026-11-03T00:00:00.000Z",
+      updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+
+    await expect(importEvidenceReport({
+      schemaVersion: 2,
+      applications: [importedApplication],
+      evidence: [orphanEvidence],
+    })).rejects.toThrow("linked to an application that is not available");
+
+    expect(await db.applications.get(importedApplication.id)).toBeUndefined();
+    expect(await db.evidence.get(orphanEvidence.id)).toBeUndefined();
+  });
+
+  it("rejects backup records with invalid timestamps or oversized fields", async () => {
+    const valid = {
+      id: "valid-app", company: "Example", role: "Engineer", jobUrl: "", appliedAt: "",
+      stage: "saved" as const, followUpAt: "", nextStep: "", notes: "",
+      createdAt: "2026-11-03T00:00:00.000Z", updatedAt: "2026-11-03T00:00:00.000Z",
+    };
+    await expect(importEvidenceReport({ applications: [{ ...valid, createdAt: "yesterday" }], evidence: [] }))
+      .rejects.toThrow("invalid application or evidence record");
+    await expect(importEvidenceReport({ applications: [{ ...valid, company: "x".repeat(201) }], evidence: [] }))
+      .rejects.toThrow("invalid application or evidence record");
+  });
+
+  it("rejects backups from unsupported future schema versions", async () => {
+    await expect(importEvidenceReport({ schemaVersion: 99, applications: [], evidence: [] }))
+      .rejects.toThrow("unsupported report schema version");
+  });
+
+  it("rejects backup files exceeding the record-count limit", async () => {
+    await expect(importEvidenceReport({ applications: Array(10_001).fill({}), evidence: [] }))
+      .rejects.toThrow("10,000-record import limit");
+  });
+
+  it("searches application dates, stages, and job URLs", async () => {
+    await saveApplication({
+      company: "Searchable Employer",
+      role: "Systems Engineer",
+      jobUrl: "https://careers.example.com/role-123",
+      appliedAt: "2026-11-04",
+      stage: "interview",
+    });
+    expect((await searchRecords("role-123")).applications).toHaveLength(1);
+    expect((await searchRecords("2026-11-04")).applications).toHaveLength(1);
+    expect((await searchRecords("interview")).applications).toHaveLength(1);
+  });
+
+  it("searches evidence URLs", async () => {
+    await saveEvidence({
+      requirement: "Cloud automation",
+      evidenceTitle: "Infrastructure project",
+      evidenceUrl: "https://github.com/example/terraform-lab",
+    });
+    expect((await searchRecords("terraform-lab")).evidence).toHaveLength(1);
   });
 
   it("searches application and evidence text", async () => {

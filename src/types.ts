@@ -29,6 +29,7 @@ export interface EvidenceRecord {
 }
 
 export interface EvidenceReport {
+  schemaVersion: 2;
   exportedAt: string;
   applications: ApplicationRecord[];
   evidence: EvidenceRecord[];
